@@ -46,3 +46,8 @@ app.include_router(cas.router)
 from xinyi_platform.api import oauth  # noqa: E402
 
 app.include_router(oauth.router)
+
+
+from xinyi_platform.api import internal  # noqa: E402
+
+app.include_router(internal.router)
