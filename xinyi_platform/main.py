@@ -57,3 +57,9 @@ from xinyi_platform.api import admin_users, admin_clients  # noqa: E402
 
 app.include_router(admin_users.router)
 app.include_router(admin_clients.router)
+
+
+from xinyi_platform.api import admin_audit, admin_login_history  # noqa: E402
+
+app.include_router(admin_audit.router)
+app.include_router(admin_login_history.router)

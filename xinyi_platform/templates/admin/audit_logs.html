@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block title %}审计日志{% endblock %}
+{% block content %}
+<h1>审计日志</h1>
+<form method="get">
+  <label>client_id <input name="client_id" value="{{ client_id or '' }}"></label>
+  <button>过滤</button>
+</form>
+<table>
+  <tr><th>时间</th><th>client</th><th>用户</th><th>action</th><th>资源</th><th>IP</th></tr>
+  {% for log in logs %}
+  <tr>
+    <td>{{ log.created_at }}</td>
+    <td>{{ log.client_id or '—' }}</td>
+    <td>{{ log.user_id or '—' }}</td>
+    <td>{{ log.action }}</td>
+    <td>{{ log.resource_type }}:{{ log.resource_id }}</td>
+    <td>{{ log.ip_address or '—' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
