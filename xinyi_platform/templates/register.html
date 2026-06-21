@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}注册{% endblock %}
+{% block content %}
+<h1>注册新用户</h1>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+<form method="post" action="/register">
+  <label>用户名 <input type="text" name="username" required></label>
+  <label>显示名 <input type="text" name="display_name" required></label>
+  <label>邮箱 <input type="email" name="email"></label>
+  <label>密码(至少8位,含大写字母和数字) <input type="password" name="password" required></label>
+  <button type="submit">注册</button>
+</form>
+{% endblock %}
