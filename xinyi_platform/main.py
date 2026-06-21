@@ -36,3 +36,8 @@ from xinyi_platform.api import register, password  # noqa: E402
 
 app.include_router(register.router)
 app.include_router(password.router)
+
+
+from xinyi_platform.api import cas  # noqa: E402
+
+app.include_router(cas.router)

@@ -1,0 +1,68 @@
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from xinyi_platform.auth.cas import CASClient
+from xinyi_platform.auth.session import create_access_token
+from xinyi_platform.config import Settings
+from xinyi_platform.db import get_session
+from xinyi_platform.models.user import AuthProvider, User
+
+router = APIRouter(prefix="/cas", tags=["auth"])
+SELF_CLIENT_ID = "xinyi-platform-self"
+
+
+def _make_cas_client(settings: Settings) -> CASClient:
+    return CASClient(settings.cas_server_url, settings.cas_service_url)
+
+
+@router.get("/login")
+async def cas_login():
+    settings = Settings()
+    if not settings.cas_server_url or not settings.cas_service_url:
+        raise HTTPException(status_code=500, detail="CAS not configured")
+    client = _make_cas_client(settings)
+    return RedirectResponse(url=client.get_login_url())
+
+
+@router.get("/callback")
+async def cas_callback(
+    ticket: str,
+    request: Request,
+    session: AsyncSession = Depends(get_session),
+):
+    settings = Settings()
+    if not settings.cas_server_url or not settings.cas_service_url:
+        raise HTTPException(status_code=500, detail="CAS not configured")
+    client = _make_cas_client(settings)
+    username = await client.verify_ticket(ticket)
+    if not username:
+        raise HTTPException(status_code=401, detail="CAS authentication failed")
+
+    result = await session.execute(select(User).where(User.username == username))
+    user = result.scalar_one_or_none()
+    if user is None:
+        user = User(
+            username=username, display_name=username,
+            auth_provider=AuthProvider.CAS,
+        )
+        session.add(user)
+        await session.flush()
+    user.last_login_at = datetime.now(timezone.utc)
+    await session.commit()
+
+    token = create_access_token(
+        sub=str(user.id), username=user.username,
+        role=user.role.value, client_id=SELF_CLIENT_ID,
+        secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
+    )
+    resp = RedirectResponse(url="/account", status_code=303)
+    resp.set_cookie(
+        "xinyi_session", token,
+        httponly=True, max_age=settings.session_expire_hours * 3600,
+        path="/", samesite="lax", secure=settings.session_secure,
+    )
+    return resp
