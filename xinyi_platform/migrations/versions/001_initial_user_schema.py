@@ -19,8 +19,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.execute("CREATE SCHEMA IF NOT EXISTS xinyi")
-    op.execute("CREATE TYPE xinyi.auth_provider AS ENUM ('local', 'cas')")
-    op.execute("CREATE TYPE xinyi.user_role AS ENUM ('admin', 'user')")
+    op.execute("DO $$ BEGIN CREATE TYPE xinyi.auth_provider AS ENUM ('local', 'cas'); EXCEPTION WHEN duplicate_object THEN null; END $$;")
+    op.execute("DO $$ BEGIN CREATE TYPE xinyi.user_role AS ENUM ('admin', 'user'); EXCEPTION WHEN duplicate_object THEN null; END $$;")
     op.create_table(
         "users",
         sa.Column("id", sa.dialects.postgresql.UUID(as_uuid=True), primary_key=True,
@@ -30,11 +30,11 @@ def upgrade() -> None:
         sa.Column("password_hash", sa.String(255), nullable=True),
         sa.Column("display_name", sa.String(255), nullable=False),
         sa.Column("auth_provider",
-                  sa.Enum("local", "cas", name="auth_provider", schema="xinyi"),
+                  sa.dialects.postgresql.ENUM("local", "cas", name="auth_provider", schema="xinyi", create_type=False),
                   nullable=False),
         sa.Column("role",
-                  sa.Enum("admin", "user", name="user_role", schema="xinyi"),
-                  nullable=False, server_default="USER"),
+                  sa.dialects.postgresql.ENUM("admin", "user", name="user_role", schema="xinyi", create_type=False),
+                  nullable=False, server_default="user"),
         sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
         sa.Column("last_login_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),

@@ -33,6 +33,10 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
+    from sqlalchemy import text
+    # Ensure version_table_schema exists before Alembic tries to query it
+    connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{settings.manager_schema}"'))
+    connection.commit()
     context.configure(
         connection=connection,
         target_metadata=target_metadata,

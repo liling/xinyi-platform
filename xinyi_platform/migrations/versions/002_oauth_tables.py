@@ -18,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE TYPE xinyi.client_status AS ENUM ('active', 'disabled')")
+    op.execute("DO $$ BEGIN CREATE TYPE xinyi.client_status AS ENUM ('active', 'disabled'); EXCEPTION WHEN duplicate_object THEN null; END $$;")
     op.create_table(
         "business_clients",
         sa.Column("id", sa.dialects.postgresql.UUID(as_uuid=True), primary_key=True,
@@ -28,8 +28,8 @@ def upgrade() -> None:
         sa.Column("client_secret_hash", sa.String(255), nullable=False),
         sa.Column("redirect_uris", sa.dialects.postgresql.JSONB, nullable=False),
         sa.Column("status",
-                  sa.Enum("active", "disabled", name="client_status", schema="xinyi"),
-                  nullable=False, server_default="ACTIVE"),
+                  sa.dialects.postgresql.ENUM("active", "disabled", name="client_status", schema="xinyi", create_type=False),
+                  nullable=False, server_default="active"),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         schema="xinyi",
