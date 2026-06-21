@@ -1,0 +1,70 @@
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from xinyi_platform.auth.dependencies import require_admin
+from xinyi_platform.db import get_session
+from xinyi_platform.models.business_client import BusinessClient, ClientStatus
+from xinyi_platform.services.business_client_service import (
+    BusinessClientService,
+    ClientConflictError,
+)
+
+router = APIRouter(prefix="/admin/clients", tags=["admin"], dependencies=[Depends(require_admin)])
+templates = Jinja2Templates(directory="xinyi_platform/templates")
+
+
+@router.get("", response_class=HTMLResponse)
+async def list_clients(
+    request: Request,
+    session: AsyncSession = Depends(get_session),
+):
+    result = await session.execute(select(BusinessClient).order_by(BusinessClient.created_at.desc()))
+    clients = result.scalars().all()
+    return templates.TemplateResponse(request, "admin/clients.html", {"clients": clients})
+
+
+@router.post("")
+async def register_client(
+    body: dict = Body(...),
+    session: AsyncSession = Depends(get_session),
+):
+    try:
+        client, raw_secret = await BusinessClientService.register(
+            session,
+            client_id=body["client_id"],
+            name=body["name"],
+            redirect_uris=body.get("redirect_uris", []),
+        )
+        await session.commit()
+    except ClientConflictError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "id": str(client.id),
+        "client_id": client.client_id,
+        "client_secret": raw_secret,
+        "name": client.name,
+        "redirect_uris": client.redirect_uris,
+    }
+
+
+@router.post("/{client_id}/disable")
+async def disable_client(
+    client_id: str,
+    session: AsyncSession = Depends(get_session),
+):
+    await BusinessClientService.set_status(session, client_id, ClientStatus.DISABLED)
+    await session.commit()
+    return {"ok": True}
+
+
+@router.post("/{client_id}/enable")
+async def enable_client(
+    client_id: str,
+    session: AsyncSession = Depends(get_session),
+):
+    await BusinessClientService.set_status(session, client_id, ClientStatus.ACTIVE)
+    await session.commit()
+    return {"ok": True}

@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% block title %}业务接入{% endblock %}
+{% block content %}
+<h1>业务接入</h1>
+<table>
+  <tr><th>client_id</th><th>名称</th><th>回调地址</th><th>状态</th><th>操作</th></tr>
+  {% for c in clients %}
+  <tr>
+    <td>{{ c.client_id }}</td>
+    <td>{{ c.name }}</td>
+    <td>{{ c.redirect_uris | join(', ') }}</td>
+    <td>{{ c.status.value }}</td>
+    <td>
+      {% if c.status.value == 'active' %}
+        <form method="post" action="/admin/clients/{{ c.client_id }}/disable" style="display:inline">
+          <button>禁用</button>
+        </form>
+      {% else %}
+        <form method="post" action="/admin/clients/{{ c.client_id }}/enable" style="display:inline">
+          <button>启用</button>
+        </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<h2>注册新业务</h2>
+<form method="post" action="/admin/clients" enctype="application/x-www-form-urlencoded">
+  <label>client_id <input name="client_id" required></label>
+  <label>名称 <input name="name" required></label>
+  <button>注册</button>
+</form>
+{% endblock %}

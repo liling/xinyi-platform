@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Admin{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav>
+    <a href="/admin/users">用户</a>
+    <a href="/admin/clients">业务接入</a>
+    <a href="/admin/audit-logs">审计日志</a>
+    <a href="/admin/login-history">登录历史</a>
+    <a href="/account">我的账户</a>
+    <a href="/logout">登出</a>
+  </nav>
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>
