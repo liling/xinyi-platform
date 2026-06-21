@@ -23,3 +23,10 @@ async def health():
 def main():
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+from xinyi_platform.api import login, logout, me  # noqa: E402
+
+app.include_router(login.router)
+app.include_router(logout.router)
+app.include_router(me.router)

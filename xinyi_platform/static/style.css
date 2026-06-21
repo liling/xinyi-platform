@@ -1,0 +1,6 @@
+body { font-family: sans-serif; max-width: 960px; margin: 1em auto; padding: 0 1em; }
+header nav a { margin-right: 1em; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 0.5em; text-align: left; }
+.error { color: red; }
+.info { color: green; }
