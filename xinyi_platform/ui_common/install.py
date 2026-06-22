@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 from .registry import PRODUCTS
@@ -33,24 +33,7 @@ def install_ui(
     platform_url: str,
     manager_url: str | None = None,
 ) -> None:
-    """Install shared UI: Jinja globals, templates loader, static files mount.
-
-    Args:
-        app: FastAPI instance to wire into.
-        current_service: which key in PRODUCTS represents this service
-            (used to mark active in topbar/sidebar). One of "platform",
-            "hindsight-manager", or future business ids.
-        nav_menu: list-of-sections describing this service's sidebar.
-        brand: brand label shown next to logo in topbar.
-        platform_url: base URL of the platform (xinyi-platform) service.
-        manager_url: base URL of hindsight-manager (required for the
-            platform service to render HM entry in the switcher; business
-            services may leave None).
-
-    Stores resolved config on `app.state.ui` so routers and Jinja globals
-    can access it later. Mounts `/​_ui/static` so every service can serve
-    ui.css at the same path.
-    """
+    """Install shared UI: Jinja globals, templates loader, static files mount."""
     app.state.ui = {
         "current_service": current_service,
         "nav_menu": nav_menu,
@@ -68,3 +51,28 @@ def install_ui(
         StaticFiles(directory=str(_STATIC_DIR)),
         name="ui-static",
     )
+
+
+def ui_jinja_globals(request: Request) -> dict:
+    """Helper to be used by business Jinja2Templates to expose ui_common state.
+
+    Usage in a business app::
+
+        from fastapi.templating import Jinja2Templates
+        from xinyi_platform.ui_common import install_ui, ui_jinja_globals
+
+        templates = Jinja2Templates(directory="my_app/templates")
+        templates.env.globals.update(**ui_jinja_globals_factory(app))
+
+    For FastAPI `Request`-based resolution we attach this helper and let
+    business code wire its own Jinja env; see Task 3/4 for an example.
+    """
+    ui = request.app.state.ui
+    return {
+        "current_service": ui["current_service"],
+        "nav_menu": ui["nav_menu"],
+        "brand": ui["brand"],
+        "platform_url": ui["platform_url"],
+        "manager_url": ui["manager_url"],
+        "products": ui["products"],
+    }

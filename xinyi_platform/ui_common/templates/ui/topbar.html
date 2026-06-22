@@ -1,0 +1,16 @@
+<header class="topbar">
+    <div class="topbar-brand">
+        <img src="/_ui/static/logo.svg" alt="{{ brand }}" class="topbar-logo">
+        <span class="topbar-brand-name">{{ brand }}</span>
+    </div>
+    <div class="topbar-actions">
+        {% include "ui/product_switcher.html" %}
+        <div class="topbar-account">
+            <span class="topbar-username">{{ current_user.username }}</span>
+            {% block account_actions %}
+            {#- 个人中心始终指向当前服务的 profile/account 入口；跨服务跳转由 product_switcher 完成 -#}
+            <a href="{% if current_service == 'platform' %}/account{% else %}/profile{% endif %}" class="btn btn-ghost btn-sm">个人中心</a>
+            {% endblock %}
+        </div>
+    </div>
+</header>

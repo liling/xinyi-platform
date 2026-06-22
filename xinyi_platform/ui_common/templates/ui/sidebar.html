@@ -1,0 +1,27 @@
+<nav class="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <img src="/_ui/static/logo.svg" alt="{{ brand }}" class="sidebar-logo">
+            <h3>{{ brand }}</h3>
+        </div>
+        <p class="user-info">{{ current_user.username }}</p>
+    </div>
+    <div class="sidebar-nav">
+        {% set _path = request.url.path %}
+        {% for section in nav_menu %}
+            {% if not section.get('require_admin') or current_user.get('role') == 'admin' %}
+            <div class="nav-section-title">{{ section.label }}</div>
+            {% for item in section.items %}
+            {% set _isActive = _path == item.href or _path.startswith(item.href + '/') %}
+            {#- 特殊情况：dashboard 和根路径的 active 处理 later；这里保持 startswith 即可 -#}
+            <a href="{{ item.href }}" class="nav-item{% if _isActive %} active{% endif %}">{{ item.label }}</a>
+            {% endfor %}
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="sidebar-footer">
+        <form method="post" action="{% if current_service == 'platform' %}/logout{% else %}/auth/logout{% endif %}" class="nav-logout-form">
+            <button type="submit" class="nav-item nav-logout">退出登录</button>
+        </form>
+    </div>
+</nav>

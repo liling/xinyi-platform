@@ -1,0 +1,12 @@
+{% extends "ui/base.html" %}
+{% block body %}
+<div class="admin-layout">
+    {% include "ui/sidebar.html" %}
+    <div class="admin-main-wrap">
+        {% include "ui/topbar.html" %}
+        <main class="main-content">
+            {% block main %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}

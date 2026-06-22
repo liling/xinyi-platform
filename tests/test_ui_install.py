@@ -46,3 +46,16 @@ def test_install_ui_requires_main_app_and_current_service():
     import pytest
     with pytest.raises(TypeError):
         install_ui()  # type: ignore[call-arg]
+
+
+def test_ui_assets_present():
+    from pathlib import Path
+    from xinyi_platform.ui_common import install  # noqa
+    base = Path(install.__file__).resolve().parent
+    assert (base / "static" / "ui.css").exists()
+    assert (base / "templates" / "ui" / "base.html").exists()
+    assert (base / "templates" / "ui" / "app_shell.html").exists()
+    assert (base / "templates" / "ui" / "auth_shell.html").exists()
+    assert (base / "templates" / "ui" / "topbar.html").exists()
+    assert (base / "templates" / "ui" / "sidebar.html").exists()
+    assert (base / "templates" / "ui" / "product_switcher.html").exists()
