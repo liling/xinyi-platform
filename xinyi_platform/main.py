@@ -15,6 +15,29 @@ from xinyi_platform.models.token_revocation import TokenRevocation
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+settings = Settings()
+
+PLATFORM_NAV_MENU = [
+    {
+        "type": "section",
+        "label": "账户",
+        "items": [
+            {"id": "account", "label": "我的账户", "href": "/account"},
+        ],
+    },
+    {
+        "type": "section",
+        "label": "管理",
+        "require_admin": True,
+        "items": [
+            {"id": "users",          "label": "用户",       "href": "/admin/users"},
+            {"id": "clients",        "label": "业务接入",   "href": "/admin/clients"},
+            {"id": "audit_logs",     "label": "审计日志",   "href": "/admin/audit-logs"},
+            {"id": "login_history",  "label": "登录历史",   "href": "/admin/login-history"},
+        ],
+    },
+]
+
 
 class AppState:
     def __init__(self):
@@ -37,7 +60,6 @@ async def _cleanup_expired_tokens(session_factory):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings = Settings()
     app_state.settings = settings
     app_state.engine = create_engine(settings)
     app_state.session_factory = create_session_factory(app_state.engine)
@@ -65,6 +87,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="xinyi-platform", version="0.1.0", lifespan=lifespan)
+
+from xinyi_platform.ui_common import install_ui
+
+install_ui(
+    app,
+    current_service="platform",
+    nav_menu=PLATFORM_NAV_MENU,
+    brand=settings.brand_name,
+    platform_url=settings.base_url,
+    manager_url=settings.manager_url,
+)
+
 app.mount("/static", StaticFiles(directory="xinyi_platform/static"), name="static")
 
 from xinyi_platform.api import (  # noqa: E402

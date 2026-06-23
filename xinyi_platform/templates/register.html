@@ -1,13 +1,24 @@
-{% extends "base.html" %}
+{% extends "ui/auth_shell.html" %}
 {% block title %}注册{% endblock %}
-{% block content %}
-<h1>注册新用户</h1>
-{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% block auth_body %}
 <form method="post" action="/register">
-  <label>用户名 <input type="text" name="username" required></label>
-  <label>显示名 <input type="text" name="display_name" required></label>
-  <label>邮箱 <input type="email" name="email"></label>
-  <label>密码(至少8位,含大写字母和数字) <input type="password" name="password" required></label>
-  <button type="submit">注册</button>
+    <div class="form-group">
+        <label>用户名</label>
+        <input type="text" name="username" required>
+    </div>
+    <div class="form-group">
+        <label>显示名</label>
+        <input type="text" name="display_name" required>
+    </div>
+    <div class="form-group">
+        <label>邮箱</label>
+        <input type="email" name="email">
+    </div>
+    <div class="form-group">
+        <label>密码（至少 8 位，含大写字母和数字）</label>
+        <input type="password" name="password" required>
+    </div>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <button type="submit" class="btn btn-primary btn-block">注册</button>
 </form>
 {% endblock %}

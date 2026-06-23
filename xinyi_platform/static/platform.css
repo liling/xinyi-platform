@@ -1,0 +1,6 @@
+/* xinyi-platform 业务专属补丁。
+ * 通用部分（按钮、表单、表格、卡片、顶栏、侧栏、auth 壳）来自
+ * /​_ui/static/ui.css（ui_common 子包）。
+ */
+
+/* 平台 admin 列表里的特殊用法如有可加在此处；当前为空 */

@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,13 +9,26 @@ from xinyi_platform.auth.password import verify_password
 from xinyi_platform.auth.session import create_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
+from xinyi_platform.jinja_env import make_templates
 from xinyi_platform.middleware.rate_limit import login_limiter
 from xinyi_platform.models.user import User
 
 router = APIRouter(tags=["auth"])
 
-templates = Jinja2Templates(directory="xinyi_platform/templates")
+templates = make_templates()
 SELF_CLIENT_ID = "xinyi-platform-self"
+
+
+def _ui_ctx(request):
+    ui = request.app.state.ui
+    return {
+        "current_service": ui["current_service"],
+        "nav_menu": ui["nav_menu"],
+        "brand": ui["brand"],
+        "products": ui["products"],
+        "platform_url": ui["platform_url"],
+        "manager_url": ui["manager_url"],
+    }
 
 
 def _set_session_cookie(response, token: str, settings: Settings) -> None:
@@ -34,7 +46,8 @@ def _set_session_cookie(response, token: str, settings: Settings) -> None:
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, return_to: str | None = Query(default=None)):
     return templates.TemplateResponse(
-        request, "login.html", {"return_to": return_to or "/account"},
+        request, "login.html",
+        {**_ui_ctx(request), "return_to": return_to or "/account"},
     )
 
 
@@ -92,7 +105,8 @@ async def login_form(
     user = result.scalar_one_or_none()
     if not user or not user.is_active or not user.password_hash or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
-            request, "login.html", {"error": "用户名或密码错误", "return_to": return_to},
+            request, "login.html",
+            {**_ui_ctx(request), "error": "用户名或密码错误", "return_to": return_to},
             status_code=200,
         )
 
