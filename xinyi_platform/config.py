@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     base_url: str = "http://localhost:8000"
-    brand_name: str = "xinyi"
+    brand_name: str = "平台"
     manager_url: str = "http://localhost:8001"
 
     rate_limit_login_per_minute: int = 5
