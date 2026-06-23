@@ -1085,3 +1085,35 @@ a:hover { text-decoration: underline; }
 
 /* ── admin-main-wrap: 让顶栏与主区并排在侧栏右边 ── */
 .admin-main-wrap { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+
+/* ── Profile card ── */
+.profile-card {
+    background: var(--surface);
+    padding: 32px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    max-width: 520px;
+}
+.profile-field {
+    margin-bottom: 22px;
+}
+.profile-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.profile-field input {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-family: var(--font);
+}
