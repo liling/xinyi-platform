@@ -13,8 +13,8 @@
             <div class="nav-section-title">{{ section.label }}</div>
             {% for item in section['items'] %}
             {% set _isActive = _path == item.href or _path.startswith(item.href + '/') %}
-            {#- 特殊情况：dashboard 和根路径的 active 处理 later；这里保持 startswith 即可 -#}
-            <a href="{{ item.href }}" class="nav-item{% if _isActive %} active{% endif %}">{{ item.label }}</a>
+            {% set _href = platform_url + '/account' if item.href == '__PLATFORM_ACCOUNT__' and current_service != 'platform' else item.href %}
+            <a href="{{ _href }}" class="nav-item{% if _isActive %} active{% endif %}">{{ item.label }}</a>
             {% endfor %}
             {% endif %}
         {% endfor %}
