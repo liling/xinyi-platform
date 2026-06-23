@@ -3,7 +3,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.auth.session import (
@@ -210,3 +210,9 @@ class OAuthService:
             ).limit(1)
         )
         return result.scalar_one_or_none() is not None
+
+    @staticmethod
+    async def clear_revocation(session: AsyncSession, user_id: uuid.UUID) -> None:
+        await session.execute(
+            delete(TokenRevocation).where(TokenRevocation.user_id == user_id)
+        )

@@ -13,6 +13,7 @@ from xinyi_platform.jinja_env import make_templates
 from xinyi_platform.middleware.rate_limit import login_limiter
 from xinyi_platform.models.login_history import LoginHistory
 from xinyi_platform.models.user import User
+from xinyi_platform.services.oauth_service import OAuthService
 
 router = APIRouter(tags=["auth"])
 
@@ -87,6 +88,7 @@ async def login_json(
         user_agent=request.headers.get("user-agent"),
         success=True,
     ))
+    await OAuthService.clear_revocation(session, user.id)
     await session.commit()
 
     token = create_access_token(
@@ -131,6 +133,7 @@ async def login_form(
         user_agent=request.headers.get("user-agent"),
         success=True,
     ))
+    await OAuthService.clear_revocation(session, user.id)
     await session.commit()
 
     token = create_access_token(

@@ -11,6 +11,7 @@ from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.models.login_history import LoginHistory
 from xinyi_platform.models.user import AuthProvider, User
+from xinyi_platform.services.oauth_service import OAuthService
 
 router = APIRouter(prefix="/cas", tags=["auth"])
 SELF_CLIENT_ID = "xinyi-platform-self"
@@ -66,6 +67,7 @@ async def cas_callback(
         user_agent=request.headers.get("user-agent"),
         success=True,
     ))
+    await OAuthService.clear_revocation(session, user.id)
     await session.commit()
 
     token = create_access_token(
