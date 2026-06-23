@@ -19,7 +19,6 @@ def test_install_ui_registers_globals_and_static():
         manager_url="http://hm.test",
     )
 
-    routes = {r.path: r for r in app.routes}
     assert "/_ui/static" in { getattr(r, "path", "") for r in app.routes }
 
     # Jinja2 globals — 验证可以通过创建一个 Jinja2Templates 实例后 env 是否带预期 globals
