@@ -5,8 +5,9 @@ from xinyi_platform.main import app
 
 def test_logout_clears_cookie():
     client = TestClient(app)
-    response = client.post("/logout")
-    assert response.status_code == 200
+    response = client.post("/logout", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers.get("location") == "/login"
     cookie_header = response.headers.get("set-cookie", "")
     assert "xinyi_session" in cookie_header
 
