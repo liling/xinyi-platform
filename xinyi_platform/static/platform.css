@@ -1,6 +1,36 @@
-/* xinyi-platform 业务专属补丁。
+/* xinyi-platform 管理后台专属补丁。
+ *
  * 通用部分（按钮、表单、表格、卡片、顶栏、侧栏、auth 壳）来自
- * /​_ui/static/ui.css（ui_common 子包）。
+ * /_ui/static/ui.css（ui_common 子包），这里只加平台管理页面的专属修饰。
  */
 
-/* 平台 admin 列表里的特殊用法如有可加在此处；当前为空 */
+:root {
+  --bg-secondary: #f8f9fb;
+  --bg-hover: #f0f1f3;
+}
+
+/* ── 筛选行（审计日志用） ── */
+.form-inline {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.form-inline .form-group {
+  margin-bottom: 0;
+  min-width: 180px;
+}
+.form-inline .form-group label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+/* ── 注册新业务的卡片内表单 ── */
+.card form {
+  max-width: 420px;
+}
+
+/* ── 表格内的角色 / 状态徽章补丁 ── */
+.data-table .badge {
+  font-size: 11.5px;
+}

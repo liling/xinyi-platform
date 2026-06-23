@@ -6,7 +6,7 @@
     <a href="/admin/users/new" class="btn btn-primary">+ 新建用户</a>
 </div>
 <div class="card">
-    <table class="table">
+    <table class="data-table">
         <thead>
             <tr><th>用户名</th><th>显示名</th><th>邮箱</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr>
         </thead>
@@ -16,10 +16,10 @@
                 <td>{{ u.username }}</td>
                 <td>{{ u.display_name or '' }}</td>
                 <td>{{ u.email or '' }}</td>
-                <td>{{ u.role.value }}</td>
-                <td>{% if u.is_active %}正常{% else %}禁用{% endif %}</td>
+                <td><span class="badge badge-{{ 'system' if u.role.value == 'admin' else 'default' }}">{{ u.role.value }}</span></td>
+                <td><span class="badge badge-{{ 'success' if u.is_active else 'danger' }}">{{ '正常' if u.is_active else '禁用' }}</span></td>
                 <td>{{ u.created_at }}</td>
-                <td><a href="/admin/users/{{ u.id }}/edit" class="btn btn-secondary btn-sm">编辑</a></td>
+                <td class="action-cell"><a href="/admin/users/{{ u.id }}/edit" class="btn btn-secondary btn-sm">编辑</a></td>
             </tr>
         {% endfor %}
         </tbody>

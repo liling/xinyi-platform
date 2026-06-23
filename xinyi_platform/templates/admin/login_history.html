@@ -5,9 +5,9 @@
     <h2>登录历史</h2>
 </div>
 <div class="card">
-    <table class="table">
+    <table class="data-table">
         <thead>
-            <tr><th>时间</th><th>用户 ID</th><th>IP</th><th>UA</th><th>成功</th><th>失败原因</th></tr>
+            <tr><th>时间</th><th>用户 ID</th><th>IP</th><th>UA</th><th>结果</th><th>失败原因</th></tr>
         </thead>
         <tbody>
         {% for r in records %}
@@ -16,7 +16,7 @@
                 <td>{{ r.user_id }}</td>
                 <td>{{ r.ip_address or '—' }}</td>
                 <td>{{ (r.user_agent or '')[:50] }}</td>
-                <td>{{ '✓' if r.success else '✗' }}</td>
+                <td><span class="badge badge-{{ 'success' if r.success else 'danger' }}">{{ '成功' if r.success else '失败' }}</span></td>
                 <td>{{ r.failure_reason or '' }}</td>
             </tr>
         {% endfor %}

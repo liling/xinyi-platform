@@ -3,19 +3,20 @@
 {% block main %}
 <div class="content-header">
     <h2>业务接入</h2>
+    <button class="btn btn-primary" onclick="showRegisterModal()">+ 新建业务</button>
 </div>
 <div class="card">
-    <table class="table">
+    <table class="data-table">
         <thead>
             <tr><th>client_id</th><th>名称</th><th>回调地址</th><th>状态</th><th>操作</th></tr>
         </thead>
         <tbody>
         {% for c in clients %}
             <tr>
-                <td>{{ c.client_id }}</td>
+                <td><code>{{ c.client_id }}</code></td>
                 <td>{{ c.name }}</td>
                 <td>{{ c.redirect_uris | join(', ') }}</td>
-                <td>{{ c.status.value }}</td>
+                <td><span class="badge badge-{{ 'success' if c.status.value == 'active' else 'default' }}">{{ c.status.value }}</span></td>
                 <td>
                     {% if c.status.value == 'active' %}
                         <form method="post" action="/admin/clients/{{ c.client_id }}/disable" style="display:inline">
@@ -32,20 +33,31 @@
         </tbody>
     </table>
 </div>
-<div class="card">
-    <div class="content-header">
+
+<!-- 注册新业务弹窗 -->
+<div id="registerModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideRegisterModal()"></div>
+    <div class="modal-content">
         <h3>注册新业务</h3>
+        <form method="post" action="/admin/clients">
+            <div class="form-group">
+                <label>client_id</label>
+                <input name="client_id" required>
+            </div>
+            <div class="form-group">
+                <label>名称</label>
+                <input name="name" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideRegisterModal()">取消</button>
+                <button type="submit" class="btn btn-primary">注册</button>
+            </div>
+        </form>
     </div>
-    <form method="post" action="/admin/clients">
-        <div class="form-group">
-            <label>client_id</label>
-            <input name="client_id" required>
-        </div>
-        <div class="form-group">
-            <label>名称</label>
-            <input name="name" required>
-        </div>
-        <button type="submit" class="btn btn-primary">注册</button>
-    </form>
 </div>
+
+<script>
+function showRegisterModal() { document.getElementById('registerModal').classList.remove('hidden'); }
+function hideRegisterModal() { document.getElementById('registerModal').classList.add('hidden'); }
+</script>
 {% endblock %}

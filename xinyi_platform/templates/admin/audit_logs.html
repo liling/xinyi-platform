@@ -4,17 +4,17 @@
 <div class="content-header">
     <h2>审计日志</h2>
 </div>
-<div class="card">
+<div class="card filter-bar">
     <form method="get" class="form-inline">
         <div class="form-group">
             <label>client_id</label>
-            <input name="client_id" value="{{ client_id or '' }}">
+            <input name="client_id" value="{{ client_id or '' }}" class="search-input">
         </div>
         <button type="submit" class="btn btn-primary btn-sm">过滤</button>
     </form>
 </div>
 <div class="card">
-    <table class="table">
+    <table class="data-table">
         <thead>
             <tr><th>时间</th><th>client</th><th>用户</th><th>action</th><th>资源</th><th>IP</th></tr>
         </thead>
@@ -24,7 +24,7 @@
                 <td>{{ log.created_at }}</td>
                 <td>{{ log.client_id or '—' }}</td>
                 <td>{{ log.user_id or '—' }}</td>
-                <td>{{ log.action }}</td>
+                <td><code>{{ log.action }}</code></td>
                 <td>{{ log.resource_type }}:{{ log.resource_id }}</td>
                 <td>{{ log.ip_address or '—' }}</td>
             </tr>
