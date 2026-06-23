@@ -2,11 +2,14 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.auth.internal_auth import verify_internal_client
+from xinyi_platform.auth.session import hash_refresh_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
+from xinyi_platform.models.refresh_token import RefreshToken
 from xinyi_platform.services.audit_service import AuditService
 from xinyi_platform.services.email_service import EmailService
 from xinyi_platform.services.oauth_service import OAuthService
@@ -108,3 +111,28 @@ async def check_revocation(
     user_id = uuid.UUID(body["user_id"])
     revoked = await OAuthService.is_user_revoked(session, user_id)
     return {"revoked": revoked}
+
+
+@router.post("/auth/revoke")
+async def revoke_user_session(
+    body: dict = Body(...),
+    session: AsyncSession = Depends(get_session),
+):
+    user_id_raw = body.get("user_id")
+    refresh_token = body.get("refresh_token")
+
+    if refresh_token:
+        token_hash = hash_refresh_token(refresh_token)
+        result = await session.execute(
+            select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+        )
+        rt = result.scalar_one_or_none()
+        if rt is not None:
+            await OAuthService.revoke_all_for_user(session, rt.user_id, reason="user_logout")
+            await session.commit()
+    elif user_id_raw:
+        uid = uuid.UUID(user_id_raw)
+        await OAuthService.revoke_all_for_user(session, uid, reason="user_logout")
+        await session.commit()
+
+    return {"ok": True}

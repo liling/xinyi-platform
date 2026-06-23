@@ -23,3 +23,22 @@ async def get_session() -> AsyncIterator[AsyncSession]:
     factory = app_state.session_factory
     async with factory() as session:
         yield session
+
+
+async def get_session_or_none() -> AsyncIterator[AsyncSession | None]:
+    """Like get_session but returns None when the DB is not available.
+
+    Use in shared dependencies (e.g. get_current_user) so that endpoints
+    in standalone-test apps don't require DB setup.
+    """
+    try:
+        from xinyi_platform.main import app_state
+    except Exception:
+        yield None
+        return
+    factory = getattr(app_state, "session_factory", None)
+    if factory is None:
+        yield None
+        return
+    async with factory() as session:
+        yield session

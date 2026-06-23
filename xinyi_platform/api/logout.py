@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Cookie, Request
+from fastapi import APIRouter, Cookie, Query, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 router = APIRouter(tags=["auth"])
@@ -12,7 +12,10 @@ async def logout(request: Request, xinyi_session: str | None = Cookie(default=No
 
 
 @router.get("/logout")
-async def logout_get(request: Request):
-    resp = RedirectResponse(url="/login", status_code=303)
+async def logout_get(
+    request: Request,
+    return_to: str = Query("/login"),
+):
+    resp = RedirectResponse(url=return_to, status_code=303)
     resp.delete_cookie("xinyi_session", path="/")
     return resp
