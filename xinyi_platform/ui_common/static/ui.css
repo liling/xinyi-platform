@@ -1036,37 +1036,30 @@ a:hover { text-decoration: underline; }
 .topbar-account { display: flex; align-items: center; gap: 10px; }
 .topbar-username { font-size: 13px; color: var(--text-secondary); }
 
-/* ── Product switcher ── */
-.product-switcher { position: relative; }
-.product-switcher-btn {
+/* ── User menu (replaces product switcher) ── */
+.user-menu { position: relative; }
+.user-menu-btn {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--surface); color: var(--text);
     font-size: 13px; cursor: pointer; transition: all var(--transition);
 }
-.product-switcher-btn:hover { background: var(--border-subtle); }
-.product-switcher-icon { color: var(--text-secondary); }
-.product-switcher-current { font-weight: 600; }
-.product-switcher-menu {
+.user-menu-btn:hover { background: var(--border-subtle); }
+.user-menu-dropdown {
     position: absolute; right: 0; top: calc(100% + 6px);
-    min-width: 260px; background: var(--surface);
+    min-width: 180px; background: var(--surface);
     border: 1px solid var(--border); border-radius: var(--radius);
     box-shadow: var(--shadow-md); padding: 6px; z-index: 50;
 }
-.product-switcher-menu.hidden { display: none; }
-.product-switcher-section {
-    font-size: 11px; font-weight: 700; color: var(--text-muted);
-    padding: 8px 10px 4px;
-}
-.product-switcher-item {
+.user-menu-dropdown.hidden { display: none; }
+.user-menu-item {
     display: block; padding: 8px 10px; border-radius: var(--radius-sm);
-    color: var(--text); text-decoration: none;
+    color: var(--text); text-decoration: none; font-size: 13.5px;
 }
-.product-switcher-item:hover { background: var(--primary-light); text-decoration: none; }
-.product-switcher-item.active { background: var(--primary-light); }
-.product-switcher-item-label { font-weight: 600; font-size: 13.5px; }
-.product-switcher-item-subtitle { font-size: 12px; color: var(--text-secondary); }
-.product-switcher-check { color: var(--primary); font-weight: 700; }
+.user-menu-item:hover { background: var(--primary-light); text-decoration: none; }
+.user-menu-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+.user-menu-logout { color: var(--danger); }
+.user-menu-item.user-menu-logout:hover { background: var(--error-bg); }
 
 /* ── Auth shell ── */
 .auth-shell {

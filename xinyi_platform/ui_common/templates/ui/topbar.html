@@ -4,13 +4,21 @@
         <span class="topbar-brand-name">{{ brand }}</span>
     </div>
     <div class="topbar-actions">
-        {% include "ui/product_switcher.html" %}
-        <div class="topbar-account">
-            <span class="topbar-username">{{ current_user.username }}</span>
-            {% block account_actions %}
-            {#- 个人中心：platform 走本服务 /account，业务跨站到 {platform_url}/account -#}
-            <a href="{% if current_service == 'platform' %}/account{% else %}{{ platform_url }}/account{% endif %}" class="btn btn-ghost btn-sm">个人中心</a>
-            {% endblock %}
+        <div class="user-menu">
+            <button type="button" class="user-menu-btn" onclick="document.getElementById('user-menu').classList.toggle('hidden')">
+                <span class="topbar-username">{{ current_user.username }}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="user-menu" class="user-menu-dropdown hidden">
+                <a class="user-menu-item" href="{% if current_service == 'platform' %}/account{% else %}{{ platform_url }}/account{% endif %}">个人中心</a>
+                {% if current_user.get('role') == 'admin' %}
+                <a class="user-menu-item" href="{% if current_service == 'platform' %}{{ manager_url }}/dashboard{% else %}{{ platform_url }}/admin/users{% endif %}">{% if current_service == 'platform' %}Hindsight{% else %}平台用户管理{% endif %}</a>
+                {% endif %}
+                <hr class="user-menu-divider">
+                <form method="post" action="{% if current_service == 'platform' %}/logout{% else %}/auth/logout{% endif %}" style="margin:0;padding:0">
+                    <button type="submit" class="user-menu-item user-menu-logout" style="width:100%;text-align:left;border:none;background:none;cursor:pointer">退出登录</button>
+                </form>
+            </div>
         </div>
     </div>
 </header>

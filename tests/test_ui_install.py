@@ -57,4 +57,5 @@ def test_ui_assets_present():
     assert (base / "templates" / "ui" / "auth_shell.html").exists()
     assert (base / "templates" / "ui" / "topbar.html").exists()
     assert (base / "templates" / "ui" / "sidebar.html").exists()
-    assert (base / "templates" / "ui" / "product_switcher.html").exists()
+    assert (base / "templates" / "ui" / "topbar.html").exists()
+    assert not (base / "templates" / "ui" / "product_switcher.html").exists()
