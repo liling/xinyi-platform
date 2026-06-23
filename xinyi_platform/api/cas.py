@@ -9,6 +9,7 @@ from xinyi_platform.auth.cas import CASClient
 from xinyi_platform.auth.session import create_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
+from xinyi_platform.models.login_history import LoginHistory
 from xinyi_platform.models.user import AuthProvider, User
 
 router = APIRouter(prefix="/cas", tags=["auth"])
@@ -17,6 +18,13 @@ SELF_CLIENT_ID = "xinyi-platform-self"
 
 def _make_cas_client(settings: Settings) -> CASClient:
     return CASClient(settings.cas_server_url, settings.cas_service_url)
+
+
+def _get_client_ip(request: Request) -> str | None:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
 
 
 @router.get("/login")
@@ -52,6 +60,12 @@ async def cas_callback(
         session.add(user)
         await session.flush()
     user.last_login_at = datetime.now(timezone.utc)
+    session.add(LoginHistory(
+        user_id=user.id,
+        ip_address=_get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        success=True,
+    ))
     await session.commit()
 
     token = create_access_token(

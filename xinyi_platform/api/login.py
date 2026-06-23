@@ -11,6 +11,7 @@ from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
 from xinyi_platform.middleware.rate_limit import login_limiter
+from xinyi_platform.models.login_history import LoginHistory
 from xinyi_platform.models.user import User
 
 router = APIRouter(tags=["auth"])
@@ -43,6 +44,13 @@ def _set_session_cookie(response, token: str, settings: Settings) -> None:
     )
 
 
+def _get_client_ip(request: Request) -> str | None:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, return_to: str | None = Query(default=None)):
     return templates.TemplateResponse(
@@ -73,6 +81,12 @@ async def login_json(
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     user.last_login_at = datetime.now(timezone.utc)
+    session.add(LoginHistory(
+        user_id=user.id,
+        ip_address=_get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        success=True,
+    ))
     await session.commit()
 
     token = create_access_token(
@@ -111,6 +125,12 @@ async def login_form(
         )
 
     user.last_login_at = datetime.now(timezone.utc)
+    session.add(LoginHistory(
+        user_id=user.id,
+        ip_address=_get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        success=True,
+    ))
     await session.commit()
 
     token = create_access_token(
