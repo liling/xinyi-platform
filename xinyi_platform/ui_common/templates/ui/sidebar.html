@@ -11,7 +11,7 @@
         {% for section in nav_menu %}
             {% if not section.get('require_admin') or current_user.get('role') == 'admin' %}
             <div class="nav-section-title">{{ section.label }}</div>
-            {% for item in section.items %}
+            {% for item in section['items'] %}
             {% set _isActive = _path == item.href or _path.startswith(item.href + '/') %}
             {#- 特殊情况：dashboard 和根路径的 active 处理 later；这里保持 startswith 即可 -#}
             <a href="{{ item.href }}" class="nav-item{% if _isActive %} active{% endif %}">{{ item.label }}</a>
