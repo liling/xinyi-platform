@@ -23,7 +23,7 @@ def test_revoke_clears_refresh_token():
         app.dependency_overrides[get_session] = _override_session()
         try:
             client = TestClient(app)
-            response = client.post("/oauth/revoke", json={"token": "raw-refresh-token"})
+            response = client.post("/xinyi/oauth/revoke", json={"token": "raw-refresh-token"})
             assert response.status_code == 200
             mock_revoke.assert_called_once()
         finally:
@@ -34,7 +34,7 @@ def test_revoke_missing_token_returns_400():
     app.dependency_overrides[get_session] = _override_session()
     try:
         client = TestClient(app)
-        response = client.post("/oauth/revoke", json={})
+        response = client.post("/xinyi/oauth/revoke", json={})
         assert response.status_code == 400
     finally:
         app.dependency_overrides.clear()

@@ -12,5 +12,5 @@ def test_app_has_ui_state_configured():
 
 def test_static_ui_css_served():
     client = TestClient(app)
-    resp = client.get("/_ui/static/ui.css")
+    resp = client.get("/xinyi/_ui/static/ui.css")
     assert resp.status_code == 200

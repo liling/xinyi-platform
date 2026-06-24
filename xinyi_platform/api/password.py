@@ -31,6 +31,7 @@ def _ui_ctx(request):
         "products": ui["products"],
         "platform_url": ui["platform_url"],
         "manager_url": ui["manager_url"],
+        "service_prefix": ui.get("service_prefix", ""),
     }
 
 

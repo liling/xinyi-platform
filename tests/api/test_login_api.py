@@ -40,7 +40,7 @@ def test_login_form_success_sets_cookie(client):
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=True):
             response = client.post(
-                "/login/form",
+                "/xinyi/login/form",
                 data={"username": "alice", "password": "MyStrong123!"},
                 follow_redirects=False,
             )
@@ -61,7 +61,7 @@ def test_login_form_wrong_password_returns_login_page(client):
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=False):
             response = client.post(
-                "/login/form",
+                "/xinyi/login/form",
                 data={"username": "alice", "password": "wrong"},
             )
         assert response.status_code == 200
@@ -81,7 +81,7 @@ def test_login_json_api_success(client):
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=True):
             response = client.post(
-                "/login",
+                "/xinyi/login",
                 json={"provider": "local", "username": "alice", "password": "MyStrong123!"},
             )
         assert response.status_code == 200

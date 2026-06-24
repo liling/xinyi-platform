@@ -31,7 +31,7 @@ def test_send_email_accepted():
         ) as mock_send:
             client = TestClient(app)
             response = client.post(
-                "/internal/notifications/email",
+                "/xinyi/internal/notifications/email",
                 headers={"X-Client-Id": "hm-prod", "X-Client-Secret": "x"},
                 json={
                     "to": ["user@example.com"], "subject": "Hi", "body": "Hello",

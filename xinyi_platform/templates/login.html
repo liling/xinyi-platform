@@ -1,8 +1,8 @@
 {% extends "ui/auth_shell.html" %}
 {% block title %}登录{% endblock %}
 {% block auth_body %}
-<form method="post" action="/login/form">
-    <input type="hidden" name="return_to" value="{{ return_to or '/account' }}">
+<form method="post" action="/xinyi/login/form">
+    <input type="hidden" name="return_to" value="{{ return_to or '/xinyi/account' }}">
     <div class="form-group">
         <label>用户名</label>
         <input type="text" name="username" required>

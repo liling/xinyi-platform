@@ -20,11 +20,11 @@
                 <td><span class="badge badge-{{ 'success' if c.status.value == 'active' else 'default' }}">{{ c.status.value }}</span></td>
                 <td>
                     {% if c.status.value == 'active' %}
-                        <form method="post" action="/admin/clients/{{ c.client_id }}/disable" style="display:inline">
+                        <form method="post" action="/xinyi/admin/clients/{{ c.client_id }}/disable" style="display:inline">
                             <button class="btn btn-danger btn-sm">禁用</button>
                         </form>
                     {% else %}
-                        <form method="post" action="/admin/clients/{{ c.client_id }}/enable" style="display:inline">
+                        <form method="post" action="/xinyi/admin/clients/{{ c.client_id }}/enable" style="display:inline">
                             <button class="btn btn-primary btn-sm">启用</button>
                         </form>
                     {% endif %}

@@ -13,12 +13,15 @@ _STATIC_DIR = _HERE / "static"
 _TEMPLATE_DIR = _HERE / "templates"
 
 
-def _resolve_products(*, platform_url: str, manager_url: str | None) -> list[dict]:
+def _resolve_products(
+    *, platform_url: str, manager_url: str | None, docupipe_url: str | None = None,
+) -> list[dict]:
     resolved: list[dict] = []
     for p in PRODUCTS:
         url = p["url_template"].format(
             platform_url=platform_url,
             manager_url=manager_url or "",
+            docupipe_url=docupipe_url or "",
         )
         resolved.append({**p, "url_template": None, "url": url})
     return resolved
@@ -32,6 +35,8 @@ def install_ui(
     brand: str,
     platform_url: str,
     manager_url: str | None = None,
+    docupipe_url: str | None = None,
+    service_prefix: str = "",
 ) -> None:
     """Install shared UI: Jinja globals, templates loader, static files mount."""
     app.state.ui = {
@@ -40,14 +45,16 @@ def install_ui(
         "brand": brand,
         "platform_url": platform_url,
         "manager_url": manager_url,
+        "docupipe_url": docupipe_url,
+        "service_prefix": service_prefix,
         "products": _resolve_products(
-            platform_url=platform_url, manager_url=manager_url
+            platform_url=platform_url, manager_url=manager_url, docupipe_url=docupipe_url,
         ),
         "template_dir": str(_TEMPLATE_DIR),
     }
 
     app.mount(
-        "/_ui/static",
+        f"{service_prefix}/_ui/static",
         StaticFiles(directory=str(_STATIC_DIR)),
         name="ui-static",
     )
@@ -75,4 +82,5 @@ def ui_jinja_globals(request: Request) -> dict:
         "platform_url": ui["platform_url"],
         "manager_url": ui["manager_url"],
         "products": ui["products"],
+        "service_prefix": ui.get("service_prefix", ""),
     }

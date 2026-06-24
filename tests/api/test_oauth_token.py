@@ -30,7 +30,7 @@ def test_token_grant_authorization_code_success():
         app.dependency_overrides[get_session] = _override_session()
         try:
             client = TestClient(app)
-            response = client.post("/oauth/token", json={
+            response = client.post("/xinyi/oauth/token", json={
                 "grant_type": "authorization_code",
                 "code": "x", "client_id": "hm-prod",
                 "client_secret": "secret", "redirect_uri": "http://hm/cb",
@@ -53,7 +53,7 @@ def test_token_grant_invalid_returns_401():
         app.dependency_overrides[get_session] = _override_session()
         try:
             client = TestClient(app)
-            response = client.post("/oauth/token", json={
+            response = client.post("/xinyi/oauth/token", json={
                 "grant_type": "authorization_code",
                 "code": "bad", "client_id": "x", "client_secret": "y",
                 "redirect_uri": "z",
@@ -67,7 +67,7 @@ def test_token_unsupported_grant_type_returns_400():
     app.dependency_overrides[get_session] = _override_session()
     try:
         client = TestClient(app)
-        response = client.post("/oauth/token", json={"grant_type": "client_credentials"})
+        response = client.post("/xinyi/oauth/token", json={"grant_type": "client_credentials"})
         assert response.status_code == 400
     finally:
         app.dependency_overrides.clear()

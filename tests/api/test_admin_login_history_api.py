@@ -35,7 +35,7 @@ def test_list_login_history():
     try:
         client = TestClient(app)
         response = client.get(
-            "/admin/login-history",
+            "/xinyi/admin/login-history",
             cookies={"xinyi_session": _admin_token()},
         )
         assert response.status_code == 200

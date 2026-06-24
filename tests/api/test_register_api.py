@@ -36,7 +36,7 @@ def test_register_success(client):
     mock = _make_session(scalar_result=None)
     app.dependency_overrides[get_session] = _override_factory(mock)
     try:
-        response = client.post("/register", data={
+        response = client.post("/xinyi/register", data={
             "username": "newbie", "password": "MyStrong123!",
             "email": "n@example.com", "display_name": "Newbie",
         }, follow_redirects=False)
@@ -50,7 +50,7 @@ def test_register_duplicate_username(client):
     mock = _make_session(scalar_result=existing)
     app.dependency_overrides[get_session] = _override_factory(mock)
     try:
-        response = client.post("/register", data={
+        response = client.post("/xinyi/register", data={
             "username": "newbie", "password": "MyStrong123!",
             "email": "n@example.com", "display_name": "Newbie",
         })

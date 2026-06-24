@@ -36,7 +36,7 @@ def test_push_event_accepted():
         ) as mock_push:
             client = TestClient(app)
             response = client.post(
-                "/internal/audit",
+                "/xinyi/internal/audit",
                 headers={"X-Client-Id": "hm-prod", "X-Client-Secret": "x"},
                 json={
                     "user_id": str(uuid.uuid4()),
@@ -61,7 +61,7 @@ def test_push_event_user_null_ok():
         ):
             client = TestClient(app)
             response = client.post(
-                "/internal/audit",
+                "/xinyi/internal/audit",
                 headers={"X-Client-Id": "hm-prod", "X-Client-Secret": "x"},
                 json={
                     "user_id": None,

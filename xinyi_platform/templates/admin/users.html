@@ -3,7 +3,7 @@
 {% block main %}
 <div class="content-header">
     <h2>用户</h2>
-    <a href="/admin/users/new" class="btn btn-primary">+ 新建用户</a>
+    <a href="/xinyi/admin/users/new" class="btn btn-primary">+ 新建用户</a>
 </div>
 <div class="card">
     <table class="data-table">
@@ -19,7 +19,7 @@
                 <td><span class="badge badge-{{ 'system' if u.role.value == 'admin' else 'default' }}">{{ u.role.value }}</span></td>
                 <td><span class="badge badge-{{ 'success' if u.is_active else 'danger' }}">{{ '正常' if u.is_active else '禁用' }}</span></td>
                 <td>{{ u.created_at }}</td>
-                <td class="action-cell"><a href="/admin/users/{{ u.id }}/edit" class="btn btn-secondary btn-sm">编辑</a></td>
+                <td class="action-cell"><a href="/xinyi/admin/users/{{ u.id }}/edit" class="btn btn-secondary btn-sm">编辑</a></td>
             </tr>
         {% endfor %}
         </tbody>

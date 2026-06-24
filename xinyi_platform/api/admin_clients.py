@@ -25,6 +25,7 @@ def _ui_ctx(request):
         "products": ui["products"],
         "platform_url": ui["platform_url"],
         "manager_url": ui["manager_url"],
+        "service_prefix": ui.get("service_prefix", ""),
     }
 
 
@@ -84,6 +85,8 @@ async def update_client(
         client.logout_url = body["logout_url"]
     if "name" in body:
         client.name = body["name"]
+    if "redirect_uris" in body:
+        client.redirect_uris = body["redirect_uris"]
     await session.commit()
     return {
         "id": str(client.id),

@@ -16,7 +16,7 @@ def cas_settings(monkeypatch):
 
 def test_cas_login_redirects_to_cas_server(cas_settings):
     client = TestClient(app)
-    response = client.get("/cas/login", follow_redirects=False)
+    response = client.get("/xinyi/cas/login", follow_redirects=False)
     assert response.status_code in (302, 307)
     assert "cas.example.com/login" in response.headers["location"]
 
@@ -40,7 +40,7 @@ def test_cas_callback_invalid_ticket_returns_401(cas_settings):
             new_callable=AsyncMock, return_value=None,
         ):
             client = TestClient(app)
-            response = client.get("/cas/callback?ticket=bad", follow_redirects=False)
+            response = client.get("/xinyi/cas/callback?ticket=bad", follow_redirects=False)
         assert response.status_code == 401
     finally:
         app.dependency_overrides.clear()

@@ -52,7 +52,7 @@ def test_list_users_as_non_admin_returns_403():
     try:
         client = TestClient(app)
         response = client.get(
-            "/admin/users",
+            "/xinyi/admin/users",
             cookies={"xinyi_session": _user_token()},
         )
         assert response.status_code == 403
@@ -65,7 +65,7 @@ def test_create_user_as_non_admin_returns_403():
     try:
         client = TestClient(app)
         response = client.post(
-            "/admin/users",
+            "/xinyi/admin/users",
             cookies={"xinyi_session": _user_token()},
             json={"username": "x", "password": "MyStrong123!", "display_name": "X"},
         )
@@ -86,7 +86,7 @@ def test_create_user_as_admin():
         try:
             client = TestClient(app)
             response = client.post(
-                "/admin/users",
+                "/xinyi/admin/users",
                 cookies={"xinyi_session": _admin_token()},
                 json={
                     "username": "new", "password": "MyStrong123!",

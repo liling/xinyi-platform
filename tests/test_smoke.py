@@ -5,6 +5,6 @@ from xinyi_platform.main import app
 
 def test_health():
     client = TestClient(app)
-    response = client.get("/health")
+    response = client.get("/xinyi/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}

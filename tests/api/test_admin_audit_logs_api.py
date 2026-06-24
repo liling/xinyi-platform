@@ -37,7 +37,7 @@ def test_filter_by_client_id():
         try:
             client = TestClient(app)
             response = client.get(
-                "/admin/audit-logs?client_id=hm-prod",
+                "/xinyi/admin/audit-logs?client_id=hm-prod",
                 cookies={"xinyi_session": _admin_token()},
             )
             assert response.status_code == 200

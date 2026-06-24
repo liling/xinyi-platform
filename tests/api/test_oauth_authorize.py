@@ -46,7 +46,7 @@ def test_authorize_unauthenticated_redirects_to_login():
     try:
         client = TestClient(app)
         response = client.get(
-            "/oauth/authorize",
+            "/xinyi/oauth/authorize",
             params={
                 "response_type": "code", "client_id": "hm-prod",
                 "redirect_uri": "http://hm:8001/auth/callback", "state": "xyz",
@@ -54,7 +54,7 @@ def test_authorize_unauthenticated_redirects_to_login():
             follow_redirects=False,
         )
         assert response.status_code == 303
-        assert "/login" in response.headers["location"]
+        assert "/xinyi/login" in response.headers["location"]
     finally:
         app.dependency_overrides.clear()
 
@@ -64,7 +64,7 @@ def test_authorize_invalid_client_id_returns_400():
     try:
         client = TestClient(app)
         response = client.get(
-            "/oauth/authorize",
+            "/xinyi/oauth/authorize",
             params={
                 "response_type": "code", "client_id": "nonexistent",
                 "redirect_uri": "http://hm:8001/auth/callback", "state": "xyz",
@@ -82,7 +82,7 @@ def test_authorize_redirect_uri_not_in_whitelist_returns_400():
     try:
         client = TestClient(app)
         response = client.get(
-            "/oauth/authorize",
+            "/xinyi/oauth/authorize",
             params={
                 "response_type": "code", "client_id": "hm-prod",
                 "redirect_uri": "http://evil.com/cb", "state": "xyz",
@@ -104,7 +104,7 @@ def test_authorize_authenticated_redirects_with_code():
         try:
             client = TestClient(app)
             response = client.get(
-                "/oauth/authorize",
+                "/xinyi/oauth/authorize",
                 params={
                     "response_type": "code", "client_id": "hm-prod",
                     "redirect_uri": "http://hm:8001/auth/callback", "state": "xyz",

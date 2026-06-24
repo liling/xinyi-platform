@@ -43,7 +43,7 @@ def test_batch_get_returns_users_dict():
         ):
             client = TestClient(app)
             response = client.post(
-                "/internal/users/batch-get",
+                "/xinyi/internal/users/batch-get",
                 headers={"X-Client-Id": "hm-prod", "X-Client-Secret": "x"},
                 json={"ids": [str(user_id_1)], "fields": ["username"]},
             )
@@ -60,7 +60,7 @@ def test_batch_get_over_limit_returns_400():
     try:
         client = TestClient(app)
         response = client.post(
-            "/internal/users/batch-get",
+            "/xinyi/internal/users/batch-get",
             headers={"X-Client-Id": "hm-prod", "X-Client-Secret": "x"},
             json={"ids": ids},
         )
@@ -74,7 +74,7 @@ def test_batch_get_without_credentials_returns_401_or_422():
     teardown = _setup_overrides(override_verify=False)
     try:
         client = TestClient(app)
-        response = client.post("/internal/users/batch-get", json={"ids": []})
+        response = client.post("/xinyi/internal/users/batch-get", json={"ids": []})
         assert response.status_code in (401, 422)
     finally:
         teardown()

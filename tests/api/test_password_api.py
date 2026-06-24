@@ -43,7 +43,7 @@ def test_forgot_password_sends_email(client):
     app.dependency_overrides[get_session] = _override_factory(mock)
     try:
         with patch("xinyi_platform.api.password.EmailService.send_safe") as mock_send:
-            response = client.post("/password/forgot", data={"email": "alice@example.com"})
+            response = client.post("/xinyi/password/forgot", data={"email": "alice@example.com"})
         assert response.status_code == 200
         mock_send.assert_called_once()
     finally:
@@ -78,7 +78,7 @@ def test_reset_password_with_valid_token(client):
 
     app.dependency_overrides[get_session] = _override_factory(session)
     try:
-        response = client.post("/password/reset", data={
+        response = client.post("/xinyi/password/reset", data={
             "email": "alice@example.com", "code": "123456",
             "new_password": "NewStrong123!",
         }, follow_redirects=False)

@@ -35,7 +35,7 @@ def test_list_clients_renders():
             secret=s.jwt_secret, ttl_seconds=900,
         )
         client = TestClient(app)
-        response = client.get("/admin/clients", cookies={"xinyi_session": token})
+        response = client.get("/xinyi/admin/clients", cookies={"xinyi_session": token})
         assert response.status_code == 200
     finally:
         app.dependency_overrides.clear()
@@ -65,7 +65,7 @@ def test_register_client_returns_secret():
             )
             client = TestClient(app)
             response = client.post(
-                "/admin/clients",
+                "/xinyi/admin/clients",
                 cookies={"xinyi_session": token},
                 json={"client_id": "test-cli", "name": "Test", "redirect_uris": ["http://x/cb"]},
             )

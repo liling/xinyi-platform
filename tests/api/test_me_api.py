@@ -36,13 +36,13 @@ def _override_session_with_user(db_user: User):
 
 def test_me_without_token_returns_401():
     client = TestClient(app)
-    response = client.get("/me")
+    response = client.get("/xinyi/me")
     assert response.status_code == 401
 
 
 def test_me_with_valid_token_returns_user():
     client = TestClient(app)
-    response = client.get("/me", cookies={"xinyi_session": _token()})
+    response = client.get("/xinyi/me", cookies={"xinyi_session": _token()})
     assert response.status_code == 200
     body = response.json()
     assert body["username"] == "alice"
@@ -63,7 +63,7 @@ def test_account_page_shows_all_six_profile_fields():
     app.dependency_overrides[get_session] = _override_session_with_user(fake_user)
     try:
         client = TestClient(app)
-        resp = client.get("/account", cookies={"xinyi_session": _token()})
+        resp = client.get("/xinyi/account", cookies={"xinyi_session": _token()})
         assert resp.status_code == 200
         html = resp.text
         for label in ["用户名", "显示名称", "邮箱", "角色", "认证方式", "账号状态"]:

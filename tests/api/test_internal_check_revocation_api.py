@@ -36,7 +36,7 @@ def test_check_revocation_returns_false():
         ):
             client = TestClient(app)
             response = client.post(
-                "/internal/auth/check-revocation",
+                "/xinyi/internal/auth/check-revocation",
                 headers={"X-Client-Id": "hm-prod", "X-Client-Secret": "x"},
                 json={"user_id": str(uuid.uuid4())},
             )

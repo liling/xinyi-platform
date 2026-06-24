@@ -20,4 +20,11 @@ PRODUCTS: list[dict] = [
         "kind": "business",
         "url_template": "{manager_url}/dashboard",
     },
+    {
+        "id": "docupipe-manager",
+        "label": "DocuPipe",
+        "subtitle": "文档管道调度",
+        "kind": "business",
+        "url_template": "{docupipe_url}/projects",
+    },
 ]

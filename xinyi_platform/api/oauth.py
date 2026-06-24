@@ -48,14 +48,14 @@ async def authorize(
     cookie_token = request.cookies.get("xinyi_session")
     if not cookie_token:
         come_back = request.url.path + "?" + request.url.query
-        login_url = f"/login?return_to={quote(come_back)}"
+        login_url = f"/xinyi/login?return_to={quote(come_back)}"
         return RedirectResponse(url=login_url, status_code=303)
 
     from jose import JWTError
     try:
         payload = decode_access_token(cookie_token, settings.jwt_secret, audience=SELF_AUDIENCE)
     except JWTError:
-        return RedirectResponse(url="/login", status_code=303)
+        return RedirectResponse(url="/xinyi/login", status_code=303)
 
     user_id = uuid.UUID(payload["sub"])
     code = await OAuthService.generate_code(

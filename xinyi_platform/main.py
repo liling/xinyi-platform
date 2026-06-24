@@ -22,7 +22,7 @@ PLATFORM_NAV_MENU = [
         "type": "section",
         "label": "账户",
         "items": [
-            {"id": "account", "label": "我的账户", "href": "/account"},
+            {"id": "account", "label": "我的账户", "href": "/xinyi/account"},
         ],
     },
     {
@@ -30,10 +30,10 @@ PLATFORM_NAV_MENU = [
         "label": "管理",
         "require_admin": True,
         "items": [
-            {"id": "users",          "label": "用户",       "href": "/admin/users"},
-            {"id": "clients",        "label": "业务接入",   "href": "/admin/clients"},
-            {"id": "audit_logs",     "label": "审计日志",   "href": "/admin/audit-logs"},
-            {"id": "login_history",  "label": "登录历史",   "href": "/admin/login-history"},
+            {"id": "users",          "label": "用户",       "href": "/xinyi/admin/users"},
+            {"id": "clients",        "label": "业务接入",   "href": "/xinyi/admin/clients"},
+            {"id": "audit_logs",     "label": "审计日志",   "href": "/xinyi/admin/audit-logs"},
+            {"id": "login_history",  "label": "登录历史",   "href": "/xinyi/admin/login-history"},
         ],
     },
 ]
@@ -97,30 +97,31 @@ install_ui(
     brand=settings.brand_name,
     platform_url=settings.base_url,
     manager_url=settings.manager_url,
+    service_prefix="/xinyi",
 )
 
-app.mount("/static", StaticFiles(directory="xinyi_platform/static"), name="static")
+app.mount("/xinyi/static", StaticFiles(directory="xinyi_platform/static"), name="static")
 
 from xinyi_platform.api import (  # noqa: E402
     admin_audit, admin_clients, admin_login_history, admin_users,
     cas, internal, login, logout, me, oauth, password, register,
 )
 
-app.include_router(login.router)
-app.include_router(logout.router)
-app.include_router(me.router)
-app.include_router(register.router)
-app.include_router(password.router)
-app.include_router(cas.router)
-app.include_router(oauth.router)
-app.include_router(internal.router)
-app.include_router(admin_users.router)
-app.include_router(admin_clients.router)
-app.include_router(admin_audit.router)
-app.include_router(admin_login_history.router)
+app.include_router(login.router, prefix="/xinyi")
+app.include_router(logout.router, prefix="/xinyi")
+app.include_router(me.router, prefix="/xinyi")
+app.include_router(register.router, prefix="/xinyi")
+app.include_router(password.router, prefix="/xinyi")
+app.include_router(cas.router, prefix="/xinyi")
+app.include_router(oauth.router, prefix="/xinyi")
+app.include_router(internal.router, prefix="/xinyi")
+app.include_router(admin_users.router, prefix="/xinyi")
+app.include_router(admin_clients.router, prefix="/xinyi")
+app.include_router(admin_audit.router, prefix="/xinyi")
+app.include_router(admin_login_history.router, prefix="/xinyi")
 
 
-@app.get("/health")
+@app.get("/xinyi/health")
 async def health():
     return {"status": "ok"}
 

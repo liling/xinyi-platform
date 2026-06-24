@@ -30,6 +30,7 @@ def _ui_ctx(request):
         "products": ui["products"],
         "platform_url": ui["platform_url"],
         "manager_url": ui["manager_url"],
+        "service_prefix": ui.get("service_prefix", ""),
     }
 
 
@@ -56,7 +57,7 @@ def _get_client_ip(request: Request) -> str | None:
 async def login_page(request: Request, return_to: str | None = Query(default=None)):
     return templates.TemplateResponse(
         request, "login.html",
-        {**_ui_ctx(request), "return_to": return_to or "/account"},
+        {**_ui_ctx(request), "return_to": return_to or "/xinyi/account"},
     )
 
 
@@ -112,7 +113,7 @@ async def login_form(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-    return_to: str = Form("/account"),
+    return_to: str = Form("/xinyi/account"),
     _limiter=Depends(login_limiter),
     session: AsyncSession = Depends(get_session),
 ):
