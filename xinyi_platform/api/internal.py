@@ -32,6 +32,17 @@ async def batch_get_users(
     return {"users": {str(k): v for k, v in result.items()}}
 
 
+@router.get("/users/search")
+async def search_users(
+    q: str = "",
+    session: AsyncSession = Depends(get_session),
+):
+    if not q.strip():
+        return {"users": []}
+    results = await UserService.search(session, q.strip(), limit=20)
+    return {"users": results}
+
+
 @router.get("/users/{user_id}")
 async def get_user(
     user_id: uuid.UUID = Path(...),

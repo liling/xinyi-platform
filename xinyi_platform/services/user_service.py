@@ -104,6 +104,31 @@ class UserService:
             user.last_login_at = datetime.now(timezone.utc)
 
     @staticmethod
+    async def search(
+        session: AsyncSession,
+        query: str,
+        limit: int = 20,
+    ) -> list[dict]:
+        stmt = select(User).where(
+            (User.username.ilike(f"%{query}%"))
+            | (User.display_name.ilike(f"%{query}%"))
+            | (User.email.ilike(f"%{query}%"))
+        ).limit(limit)
+        result = await session.execute(stmt)
+        users = result.scalars().all()
+        return [
+            {
+                "id": str(u.id),
+                "username": u.username,
+                "display_name": u.display_name,
+                "email": u.email,
+                "role": u.role.value if hasattr(u.role, "value") else str(u.role),
+                "is_active": u.is_active,
+            }
+            for u in users
+        ]
+
+    @staticmethod
     async def soft_delete(session: AsyncSession, user_id: uuid.UUID) -> None:
         user = await session.get(User, user_id)
         if user is not None:
