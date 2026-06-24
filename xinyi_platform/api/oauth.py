@@ -71,6 +71,8 @@ async def authorize(
     params = {"code": code}
     if state:
         params["state"] = state
+    if return_to:
+        params["return_to"] = return_to
     sep = "&" if "?" in redirect_uri else "?"
     return RedirectResponse(url=f"{redirect_uri}{sep}{urlencode(params)}", status_code=303)
 
