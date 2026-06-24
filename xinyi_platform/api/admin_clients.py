@@ -53,6 +53,7 @@ async def register_client(
             client_id=body["client_id"],
             name=body["name"],
             redirect_uris=body.get("redirect_uris", []),
+            logout_url=body.get("logout_url"),
         )
         await session.commit()
     except ClientConflictError as e:
@@ -63,6 +64,33 @@ async def register_client(
         "client_secret": raw_secret,
         "name": client.name,
         "redirect_uris": client.redirect_uris,
+        "logout_url": client.logout_url,
+    }
+
+
+@router.patch("/{client_id}")
+async def update_client(
+    client_id: str,
+    body: dict = Body(...),
+    session: AsyncSession = Depends(get_session),
+):
+    result = await session.execute(
+        select(BusinessClient).where(BusinessClient.client_id == client_id)
+    )
+    client = result.scalar_one_or_none()
+    if client is None:
+        raise HTTPException(status_code=404, detail="Client not found")
+    if "logout_url" in body:
+        client.logout_url = body["logout_url"]
+    if "name" in body:
+        client.name = body["name"]
+    await session.commit()
+    return {
+        "id": str(client.id),
+        "client_id": client.client_id,
+        "name": client.name,
+        "redirect_uris": client.redirect_uris,
+        "logout_url": client.logout_url,
     }
 
 

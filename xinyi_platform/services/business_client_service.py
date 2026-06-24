@@ -20,6 +20,7 @@ class BusinessClientService:
         client_id: str,
         name: str,
         redirect_uris: list[str],
+        logout_url: str | None = None,
     ) -> tuple[BusinessClient, str]:
         existing = await session.execute(
             select(BusinessClient).where(BusinessClient.client_id == client_id)
@@ -34,6 +35,7 @@ class BusinessClientService:
             name=name,
             client_secret_hash=secret_hash,
             redirect_uris=redirect_uris,
+            logout_url=logout_url,
             status=ClientStatus.ACTIVE,
         )
         session.add(client)

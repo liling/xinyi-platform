@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>退出登录</title>
+<style>
+body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; color: #333; }
+.loading { text-align: center; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #3b82f6; border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="loading">
+  <div class="spinner"></div>
+  <p>正在退出所有应用...</p>
+</div>
+{% for url in logout_urls %}
+<iframe src="{{ url }}" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+{% endfor %}
+<script>
+setTimeout(function(){ window.location.href = "{{ return_to }}"; }, 2000);
+</script>
+</body>
+</html>

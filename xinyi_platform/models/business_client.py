@@ -22,12 +22,17 @@ class BusinessClient(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     client_secret_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     redirect_uris: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    logout_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     status: Mapped[ClientStatus] = mapped_column(
         Enum(ClientStatus, name="client_status", schema="xinyi",
              values_callable=lambda obj: [e.value for e in obj]),
-        nullable=False,
-        default=ClientStatus.ACTIVE,
-        server_default="active",
+        nullable=False, default=ClientStatus.ACTIVE, server_default="active",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
