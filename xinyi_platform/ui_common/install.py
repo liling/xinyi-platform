@@ -32,6 +32,7 @@ def install_ui(
         "platform_url": platform_url,
         "service_prefix": service_prefix,
         "products": [],
+        "manager_url": "",
         "template_dir": str(_TEMPLATE_DIR),
     }
 
@@ -50,5 +51,6 @@ def ui_jinja_globals(request: Request) -> dict:
         "brand": ui["brand"],
         "platform_url": ui["platform_url"],
         "products": ui["products"],
+        "manager_url": ui.get("manager_url", ""),
         "service_prefix": ui.get("service_prefix", ""),
     }
