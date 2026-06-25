@@ -8,19 +8,22 @@
 <div class="card">
     <table class="data-table">
         <thead>
-            <tr><th>client_id</th><th>名称</th><th>回调地址</th><th>退出地址</th><th>base_url</th><th>状态</th><th>操作</th></tr>
+            <tr><th>client_id</th><th>名称</th><th>说明</th><th>回调地址</th><th>退出地址</th><th>base_url</th><th>home_path</th><th>状态</th><th>操作</th></tr>
         </thead>
         <tbody>
         {% for c in clients %}
             <tr>
                 <td><code>{{ c.client_id }}</code></td>
                 <td>{{ c.name }}</td>
+                <td>{{ c.description or '—' }}</td>
                 <td>{{ c.redirect_uris | join(', ') }}</td>
                 <td>{{ c.logout_url or '—' }}</td>
                 <td>{{ c.base_url or '—' }}</td>
-                <td><span class="badge badge-{{ 'success' if c.status.value == 'active' else 'default' }}">{{ c.status.value }}</span></td>
+                <td>{{ c.home_path or '—' }}</td>
+                <td><span class="badge badge-{{ 'success' if c.status == 'active' else 'default' }}">{{ c.status }}</span></td>
                 <td>
-                    {% if c.status.value == 'active' %}
+                    <button class="btn btn-secondary btn-sm" onclick='showEditModal({{ c | tojson }})'>编辑</button>
+                    {% if c.status == 'active' %}
                         <form method="post" action="/xinyi/admin/clients/{{ c.client_id }}/disable" style="display:inline">
                             <button class="btn btn-danger btn-sm">禁用</button>
                         </form>
@@ -52,11 +55,11 @@
             </div>
             <div class="form-group">
                 <label>回调地址（每行一个）</label>
-                <textarea name="redirect_uris" rows="2" class="form-control" placeholder="http://localhost:8002/auth/callback"></textarea>
+                <textarea name="redirect_uris" rows="2" class="form-control" placeholder="/auth/callback"></textarea>
             </div>
             <div class="form-group">
                 <label>退出地址</label>
-                <input name="logout_url" class="form-control" placeholder="http://localhost:8002/auth/logout">
+                <input name="logout_url" class="form-control" placeholder="/auth/logout">
             </div>
             <div class="form-group">
                 <label>base_url</label>
@@ -108,8 +111,91 @@
     </div>
 </div>
 
+<!-- 编辑业务弹窗 -->
+<div id="editModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="hideEditModal()"></div>
+    <div class="modal-content">
+        <h3>编辑业务</h3>
+        <form id="edit-form" onsubmit="updateClient(event)">
+            <div class="form-group">
+                <label>client_id</label>
+                <input name="client_id" readonly style="background:var(--bg);color:var(--text-secondary)">
+            </div>
+            <div class="form-group">
+                <label>名称</label>
+                <input name="name" required>
+            </div>
+            <div class="form-group">
+                <label>说明</label>
+                <input name="description" placeholder="RAG 记忆库">
+            </div>
+            <div class="form-group">
+                <label>回调地址（每行一个）</label>
+                <textarea name="redirect_uris" rows="2" class="form-control" placeholder="/auth/callback"></textarea>
+            </div>
+            <div class="form-group">
+                <label>退出地址</label>
+                <input name="logout_url" class="form-control" placeholder="/auth/logout">
+            </div>
+            <div class="form-group">
+                <label>base_url</label>
+                <input type="text" name="base_url" placeholder="http://hm:8001/hindsight">
+            </div>
+            <div class="form-group">
+                <label>home_path</label>
+                <input type="text" name="home_path" placeholder="/dashboard">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideEditModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 function showRegisterModal() { document.getElementById('registerModal').classList.remove('hidden'); }
 function hideRegisterModal() { document.getElementById('registerModal').classList.add('hidden'); }
+
+function showEditModal(client) {
+    const form = document.getElementById('edit-form');
+    form.querySelector('[name="client_id"]').value = client.client_id;
+    form.querySelector('[name="name"]').value = client.name;
+    form.querySelector('[name="description"]').value = client.description || '';
+    form.querySelector('[name="redirect_uris"]').value = (client.redirect_uris || []).join('\n');
+    form.querySelector('[name="logout_url"]').value = client.logout_url || '';
+    form.querySelector('[name="base_url"]').value = client.base_url || '';
+    form.querySelector('[name="home_path"]').value = client.home_path || '';
+    document.getElementById('editModal').classList.remove('hidden');
+}
+function hideEditModal() { document.getElementById('editModal').classList.add('hidden'); }
+
+async function updateClient(event) {
+    event.preventDefault();
+    const form = event.target;
+    const clientId = form.querySelector('[name="client_id"]').value;
+    const redirectUris = form.querySelector('[name="redirect_uris"]').value
+        .split('\n').map(s => s.trim()).filter(Boolean);
+    const body = {
+        name: form.querySelector('[name="name"]').value,
+        description: form.querySelector('[name="description"]').value.trim() || undefined,
+        redirect_uris: redirectUris,
+        logout_url: form.querySelector('[name="logout_url"]').value.trim() || undefined,
+        base_url: form.querySelector('[name="base_url"]').value.trim() || undefined,
+        home_path: form.querySelector('[name="home_path"]').value.trim() || undefined,
+    };
+    const r = await fetch('/admin/clients/' + encodeURIComponent(clientId), {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+    });
+    if (r.ok) {
+        hideEditModal();
+        location.reload();
+    } else {
+        const err = await r.json();
+        alert('更新失败: ' + (err.detail || '未知错误'));
+    }
+}
 </script>
 {% endblock %}
