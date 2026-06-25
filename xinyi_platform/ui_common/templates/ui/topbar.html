@@ -12,7 +12,13 @@
             <div id="user-menu" class="user-menu-dropdown hidden">
                 <a class="user-menu-item" href="{{ platform_url }}/account">个人中心</a>
                 {% if current_user.get('role') == 'admin' %}
-                <a class="user-menu-item" href="{% if current_service == 'platform' %}{{ manager_url }}/dashboard{% else %}{{ platform_url }}/admin/users{% endif %}">{% if current_service == 'platform' %}Hindsight{% else %}平台用户管理{% endif %}</a>
+                {% if current_service == 'platform' %}
+                {% for p in products if p.kind == 'business' %}
+                <a class="user-menu-item" href="{{ p.url }}">{{ p.label }}</a>
+                {% endfor %}
+                {% else %}
+                <a class="user-menu-item" href="{{ platform_url }}/admin/users">平台用户管理</a>
+                {% endif %}
                 {% endif %}
                 <hr class="user-menu-divider">
                 <form method="post" action="{{ service_prefix }}{% if current_service == 'platform' %}/logout{% else %}/auth/logout{% endif %}" style="margin:0;padding:0">
