@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import delete
 
@@ -119,6 +120,11 @@ app.include_router(admin_users.router, prefix="/xinyi")
 app.include_router(admin_clients.router, prefix="/xinyi")
 app.include_router(admin_audit.router, prefix="/xinyi")
 app.include_router(admin_login_history.router, prefix="/xinyi")
+
+
+@app.get("/xinyi/")
+async def root():
+    return RedirectResponse(url="/xinyi/account")
 
 
 @app.get("/xinyi/health")

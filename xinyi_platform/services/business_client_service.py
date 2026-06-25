@@ -90,6 +90,10 @@ class BusinessClientService:
         home_path: str | None = None,
         description: str | None = None,
     ) -> BusinessClient:
+        """Idempotent upsert: creates if absent, updates metadata if present.
+
+        client_secret_hash is only set on INSERT, never overwritten on UPDATE.
+        """
         result = await session.execute(
             select(BusinessClient).where(BusinessClient.client_id == client_id)
         )
