@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -134,7 +134,7 @@ async def disable_client(
 ):
     await BusinessClientService.set_status(session, client_id, ClientStatus.DISABLED)
     await session.commit()
-    return {"ok": True}
+    return RedirectResponse(url="/xinyi/admin/clients", status_code=303)
 
 
 @router.post("/{client_id}/enable")
@@ -144,4 +144,4 @@ async def enable_client(
 ):
     await BusinessClientService.set_status(session, client_id, ClientStatus.ACTIVE)
     await session.commit()
-    return {"ok": True}
+    return RedirectResponse(url="/xinyi/admin/clients", status_code=303)
