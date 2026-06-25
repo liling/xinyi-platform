@@ -105,7 +105,7 @@ app.mount("/xinyi/static", StaticFiles(directory="xinyi_platform/static"), name=
 
 from xinyi_platform.api import (  # noqa: E402
     admin_audit, admin_clients, admin_login_history, admin_users,
-    cas, internal, login, logout, me, oauth, password, register,
+    cas, internal, internal_clients, login, logout, me, oauth, password, register,
 )
 
 app.include_router(login.router, prefix="/xinyi")
@@ -116,6 +116,7 @@ app.include_router(password.router, prefix="/xinyi")
 app.include_router(cas.router, prefix="/xinyi")
 app.include_router(oauth.router, prefix="/xinyi")
 app.include_router(internal.router, prefix="/xinyi")
+app.include_router(internal_clients.router, prefix="/xinyi")
 app.include_router(admin_users.router, prefix="/xinyi")
 app.include_router(admin_clients.router, prefix="/xinyi")
 app.include_router(admin_audit.router, prefix="/xinyi")
