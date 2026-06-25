@@ -41,7 +41,11 @@ async def _render_slo_page(request: Request, return_to: str) -> HTMLResponse:
                         BusinessClient.status == ClientStatus.ACTIVE,
                     )
                 )
-                logout_urls = [c.logout_url for c in result.scalars().all() if c.logout_url]
+                logout_urls = [
+                    f"{c.base_url}{c.logout_url}"
+                    for c in result.scalars().all()
+                    if c.logout_url and c.base_url
+                ]
 
     jinja = Environment(loader=FileSystemLoader(str(Path(__file__).resolve().parent.parent / "templates")))
     html = jinja.get_template("logout.html").render(

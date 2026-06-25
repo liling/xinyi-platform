@@ -65,7 +65,9 @@ class BusinessClientService:
         client = result.scalar_one_or_none()
         if client is None:
             return False
-        return redirect_uri in (client.redirect_uris or [])
+        base_url = client.base_url or ""
+        full_uris = [f"{base_url}{u}" for u in (client.redirect_uris or [])]
+        return redirect_uri in full_uris
 
     @staticmethod
     async def set_status(session: AsyncSession, client_id: str, status: ClientStatus) -> None:

@@ -41,7 +41,9 @@ async def authorize(
     if client is None or client.status != ClientStatus.ACTIVE:
         raise HTTPException(status_code=400, detail="Invalid client_id")
 
-    if redirect_uri not in (client.redirect_uris or []):
+    base_url = client.base_url or ""
+    full_uris = [f"{base_url}{u}" for u in (client.redirect_uris or [])]
+    if redirect_uri not in full_uris:
         raise HTTPException(status_code=400, detail="redirect_uri not allowed")
 
     settings = Settings()
