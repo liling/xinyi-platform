@@ -97,7 +97,6 @@ install_ui(
     nav_menu=PLATFORM_NAV_MENU,
     brand=settings.brand_name,
     platform_url=settings.base_url,
-    manager_url=settings.manager_url,
     service_prefix="/xinyi",
 )
 
