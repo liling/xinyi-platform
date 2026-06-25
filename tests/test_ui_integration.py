@@ -63,3 +63,36 @@ def test_ui_css_includes_product_switcher_styles():
     assert ".product-switcher-btn" in css
     assert ".product-switcher-dropdown" in css
     assert ".product-switcher-item-current" in css
+
+
+def test_topbar_user_menu_does_not_repeat_product_switcher():
+    from jinja2 import ChoiceLoader, Environment, FileSystemLoader
+    from xinyi_platform.ui_common.install import _TEMPLATE_DIR as UI_TEMPLATE_DIR
+
+    env = Environment(loader=ChoiceLoader([
+        FileSystemLoader(UI_TEMPLATE_DIR),
+    ]))
+    template = env.get_template("ui/topbar.html")
+
+    html = template.render(
+        request=type("R", (), {"url": type("U", (), {"path": "/xinyi/account"})()})(),
+        current_user={"username": "alice", "role": "admin"},
+        brand="平台",
+        service_prefix="/xinyi",
+        platform_url="http://xinyi.test",
+        current_service="platform",
+        products=[
+            {
+                "id": "hindsight-manager",
+                "label": "Hindsight Manager",
+                "subtitle": "RAG 记忆库",
+                "url": "http://hm.test/hindsight/dashboard",
+                "kind": "business",
+                "is_current": False,
+            },
+        ],
+    )
+    assert "Hindsight Manager" not in html
+    assert 'href="http://hm.test/hindsight/dashboard"' not in html
+    assert "个人中心" in html
+    assert "退出登录" in html
