@@ -23,6 +23,13 @@ class BusinessClient(Base):
     client_secret_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     redirect_uris: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     logout_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    base_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    home_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     status: Mapped[ClientStatus] = mapped_column(
         Enum(ClientStatus, name="client_status", schema="xinyi",
              values_callable=lambda obj: [e.value for e in obj]),
