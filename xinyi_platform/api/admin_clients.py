@@ -24,7 +24,6 @@ def _ui_ctx(request):
         "brand": ui["brand"],
         "products": ui["products"],
         "platform_url": ui["platform_url"],
-        "manager_url": ui.get("manager_url", ""),
         "service_prefix": ui.get("service_prefix", ""),
     }
 
