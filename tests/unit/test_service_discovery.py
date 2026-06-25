@@ -144,3 +144,15 @@ def test_build_product_list_marks_current_service():
     dm = [p for p in products if p["id"] == "docupipe-prod"][0]
     assert hm["is_current"] is True
     assert dm["is_current"] is False
+
+
+def test_build_product_list_platform_self_is_current():
+    products = build_product_list(
+        [],
+        platform_url="http://xinyi:8000/xinyi",
+        self_client_id="platform",
+        self_name="平台",
+        self_home_path="/account",
+    )
+    assert products[0]["id"] == "platform"
+    assert products[0]["is_current"] is True

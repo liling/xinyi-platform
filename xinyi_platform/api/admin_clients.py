@@ -28,6 +28,19 @@ def _ui_ctx(request):
     }
 
 
+def _serialize_client(c: BusinessClient) -> dict:
+    return {
+        "client_id": c.client_id,
+        "name": c.name,
+        "description": c.description,
+        "redirect_uris": c.redirect_uris,
+        "logout_url": c.logout_url,
+        "base_url": c.base_url,
+        "home_path": c.home_path,
+        "status": c.status.value,
+    }
+
+
 @router.get("", response_class=HTMLResponse)
 async def list_clients(
     request: Request,
@@ -35,7 +48,7 @@ async def list_clients(
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(select(BusinessClient).order_by(BusinessClient.created_at.desc()))
-    clients = result.scalars().all()
+    clients = [_serialize_client(c) for c in result.scalars().all()]
     return templates.TemplateResponse(
         request, "admin/clients.html",
         {**_ui_ctx(request), "current_user": current_user, "clients": clients},

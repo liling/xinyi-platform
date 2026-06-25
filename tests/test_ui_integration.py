@@ -81,7 +81,7 @@ def test_sidebar_renders_fallback_brand_when_products_empty():
         service_prefix="/xinyi",
         products=[],
     )
-    assert 'class="product-switcher"' in html
+    assert 'class="product-switcher"' not in html
     assert "平台" in html
 
 

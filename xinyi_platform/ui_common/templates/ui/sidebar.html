@@ -3,31 +3,30 @@
         <div class="sidebar-brand">
             <img src="{{ service_prefix }}/_ui/static/logo.svg" alt="{{ brand }}" class="sidebar-logo">
             <h3>{{ brand }}</h3>
+            {% if products %}
+            <div class="product-switcher">
+                <button type="button" class="product-switcher-btn" aria-haspopup="true" aria-expanded="false" title="切换业务">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </button>
+                <div class="product-switcher-dropdown hidden">
+                    {% for p in products %}
+                        {% if p.is_current %}
+                        <span class="product-switcher-item product-switcher-item-current">
+                            <span class="product-switcher-name">{{ p.label }}</span>
+                            <span class="product-switcher-subtitle">{{ p.subtitle }}</span>
+                        </span>
+                        {% else %}
+                        <a href="{{ p.url }}" class="product-switcher-item">
+                            <span class="product-switcher-name">{{ p.label }}</span>
+                            <span class="product-switcher-subtitle">{{ p.subtitle }}</span>
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
         <p class="user-info">{{ current_user.username }}</p>
-
-        {% set current_product = products | selectattr('is_current', 'equalto', true) | first %}
-        <div class="product-switcher">
-            <button type="button" class="product-switcher-btn" aria-haspopup="true" aria-expanded="false">
-                <span class="product-switcher-current">{{ current_product.label if current_product else brand }}</span>
-                <svg class="product-switcher-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="product-switcher-dropdown hidden">
-                {% for p in products %}
-                    {% if p.is_current %}
-                    <span class="product-switcher-item product-switcher-item-current">
-                        <span class="product-switcher-name">{{ p.label }}</span>
-                        <span class="product-switcher-subtitle">{{ p.subtitle }}</span>
-                    </span>
-                    {% else %}
-                    <a href="{{ p.url }}" class="product-switcher-item">
-                        <span class="product-switcher-name">{{ p.label }}</span>
-                        <span class="product-switcher-subtitle">{{ p.subtitle }}</span>
-                    </a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
     </div>
     <div class="sidebar-nav">
         {% set _path = request.url.path %}

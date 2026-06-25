@@ -89,13 +89,14 @@ def build_product_list(
     """
     products: list[dict] = []
 
+    is_platform_current = self_client_id == "platform"
     products.append({
         "id": "platform",
         "label": "平台账户中心",
         "subtitle": "用户 · 审计 · 登录历史",
         "url": f"{platform_url}/account",
         "kind": "platform",
-        "is_current": False,
+        "is_current": is_platform_current,
     })
 
     for c in active_clients:
