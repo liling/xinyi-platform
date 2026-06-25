@@ -56,6 +56,12 @@ async def register_client(
             redirect_uris=body.get("redirect_uris", []),
             logout_url=body.get("logout_url"),
         )
+        if body.get("base_url"):
+            client.base_url = body["base_url"]
+        if body.get("home_path"):
+            client.home_path = body["home_path"]
+        if body.get("description"):
+            client.description = body["description"]
         await session.commit()
     except ClientConflictError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -66,6 +72,9 @@ async def register_client(
         "name": client.name,
         "redirect_uris": client.redirect_uris,
         "logout_url": client.logout_url,
+        "base_url": getattr(client, "base_url", None),
+        "home_path": getattr(client, "home_path", None),
+        "description": getattr(client, "description", None),
     }
 
 
@@ -87,6 +96,12 @@ async def update_client(
         client.name = body["name"]
     if "redirect_uris" in body:
         client.redirect_uris = body["redirect_uris"]
+    if "base_url" in body:
+        client.base_url = body["base_url"]
+    if "home_path" in body:
+        client.home_path = body["home_path"]
+    if "description" in body:
+        client.description = body["description"]
     await session.commit()
     return {
         "id": str(client.id),
@@ -94,6 +109,9 @@ async def update_client(
         "name": client.name,
         "redirect_uris": client.redirect_uris,
         "logout_url": client.logout_url,
+        "base_url": client.base_url,
+        "home_path": client.home_path,
+        "description": client.description,
     }
 
 
