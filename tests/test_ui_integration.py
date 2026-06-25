@@ -53,3 +53,13 @@ def test_sidebar_renders_product_switcher():
     assert "平台账户中心" in html
     assert "Hindsight Manager" in html
     assert "http://hm.test/hindsight/dashboard" in html
+
+
+def test_ui_css_includes_product_switcher_styles():
+    from pathlib import Path
+    css_path = Path(__file__).resolve().parent.parent / "xinyi_platform" / "ui_common" / "static" / "ui.css"
+    css = css_path.read_text(encoding="utf-8")
+    assert ".product-switcher" in css
+    assert ".product-switcher-btn" in css
+    assert ".product-switcher-dropdown" in css
+    assert ".product-switcher-item-current" in css
