@@ -52,8 +52,8 @@
   if (!btn || !dropdown) return;
 
   function toggle(show) {
-    const isHidden = dropdown.classList.contains('hidden');
-    const shouldShow = show === undefined ? isHidden : show;
+    const wasHidden = dropdown.classList.contains('hidden');
+    const shouldShow = show === undefined ? wasHidden : show;
     dropdown.classList.toggle('hidden', !shouldShow);
     btn.setAttribute('aria-expanded', String(shouldShow));
   }

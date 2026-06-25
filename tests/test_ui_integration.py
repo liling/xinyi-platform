@@ -65,6 +65,26 @@ def test_ui_css_includes_product_switcher_styles():
     assert ".product-switcher-item-current" in css
 
 
+def test_sidebar_renders_fallback_brand_when_products_empty():
+    from jinja2 import ChoiceLoader, Environment, FileSystemLoader
+    from xinyi_platform.ui_common.install import _TEMPLATE_DIR as UI_TEMPLATE_DIR
+
+    env = Environment(loader=ChoiceLoader([
+        FileSystemLoader(UI_TEMPLATE_DIR),
+    ]))
+    template = env.get_template("ui/sidebar.html")
+
+    html = template.render(
+        request=type("R", (), {"url": type("U", (), {"path": "/xinyi/account"})()})(),
+        current_user={"username": "alice", "role": "member"},
+        brand="平台",
+        service_prefix="/xinyi",
+        products=[],
+    )
+    assert 'class="product-switcher"' in html
+    assert "平台" in html
+
+
 def test_topbar_user_menu_does_not_repeat_product_switcher():
     from jinja2 import ChoiceLoader, Environment, FileSystemLoader
     from xinyi_platform.ui_common.install import _TEMPLATE_DIR as UI_TEMPLATE_DIR

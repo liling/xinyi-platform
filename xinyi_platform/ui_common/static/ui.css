@@ -329,7 +329,7 @@ a:hover { text-decoration: underline; }
     top: calc(100% + 6px);
     left: 0;
     right: 0;
-    background: #1e293b;
+    background: var(--sidebar-bg);
     border: 1px solid rgba(255,255,255,.08);
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-md);
