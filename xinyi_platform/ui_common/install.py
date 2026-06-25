@@ -32,7 +32,6 @@ def install_ui(
         "platform_url": platform_url,
         "service_prefix": service_prefix,
         "products": [],
-        "manager_url": "",
         "template_dir": str(_TEMPLATE_DIR),
     }
 

@@ -6,6 +6,7 @@ from xinyi_platform.main import app
 def test_app_has_ui_state_configured():
     client = TestClient(app)
     assert app.state.ui["current_service"] == "platform"
+    assert app.state.ui["brand"] == "平台"
     assert app.state.ui["products"] == []
 
 
