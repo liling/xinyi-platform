@@ -76,3 +76,49 @@ class BusinessClientService:
         if client is not None:
             client.status = status
             client.updated_at = datetime.now(timezone.utc)
+
+    @staticmethod
+    async def register_or_update(
+        session: AsyncSession,
+        *,
+        client_id: str,
+        name: str,
+        client_secret_hash: str,
+        redirect_uris: list[str],
+        logout_url: str | None = None,
+        base_url: str | None = None,
+        home_path: str | None = None,
+        description: str | None = None,
+    ) -> BusinessClient:
+        result = await session.execute(
+            select(BusinessClient).where(BusinessClient.client_id == client_id)
+        )
+        existing = result.scalar_one_or_none()
+
+        if existing is not None:
+            existing.name = name
+            existing.redirect_uris = redirect_uris
+            existing.logout_url = logout_url
+            existing.base_url = base_url
+            existing.home_path = home_path
+            existing.description = description
+            existing.last_seen_at = datetime.now(timezone.utc)
+            existing.updated_at = datetime.now(timezone.utc)
+            await session.flush()
+            return existing
+
+        client = BusinessClient(
+            client_id=client_id,
+            name=name,
+            client_secret_hash=client_secret_hash,
+            redirect_uris=redirect_uris,
+            logout_url=logout_url,
+            base_url=base_url,
+            home_path=home_path,
+            description=description,
+            last_seen_at=datetime.now(timezone.utc),
+            status=ClientStatus.ACTIVE,
+        )
+        session.add(client)
+        await session.flush()
+        return client
