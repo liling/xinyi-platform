@@ -44,6 +44,8 @@ class Settings(BaseSettings):
 
     session_secure: bool = False
 
+    registration_token: str = ""
+
 
 def get_settings() -> Settings:
     return Settings()
