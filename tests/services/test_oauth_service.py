@@ -18,7 +18,6 @@ def _make_settings():
     return Settings(
         database_url="postgresql+asyncpg://test:test@localhost/test",
         jwt_secret=TEST_SECRET,
-        encryption_key="00112233445566778899aabbccddeeff",
         admin_password="x",
         access_token_ttl_seconds=900,
         refresh_token_ttl_days=7,

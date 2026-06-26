@@ -11,7 +11,6 @@ def settings():
     return Settings(
         database_url="postgresql+asyncpg://test:test@localhost/test",
         jwt_secret="x" * 40,
-        encryption_key="00112233445566778899aabbccddeeff",
         admin_password="x",
         smtp_host="smtp.example.com",
         smtp_port=587,

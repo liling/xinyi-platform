@@ -14,7 +14,6 @@ def _make_settings(admin_password: str = "AdminPwd123!"):
     return Settings(
         database_url="postgresql+asyncpg://test:test@localhost/test",
         jwt_secret="x" * 40,
-        encryption_key="00112233445566778899aabbccddeeff",
         admin_username="admin",
         admin_password=admin_password,
     )

@@ -48,14 +48,6 @@ def client():
     return TestClient(app)
 
 
-@pytest.fixture(autouse=True)
-def _reset_login_limiter():
-    from xinyi_platform.middleware.rate_limit import login_limiter
-    login_limiter._buckets.clear()
-    yield
-    login_limiter._buckets.clear()
-
-
 def test_login_json_failure_records_history(client):
     user = _make_user()
     mock = _make_session(user)
@@ -106,5 +98,6 @@ def test_login_json_failure_user_not_found_records_history(client):
         failed = _failed_login_history(mock)
         assert len(failed) == 1
         assert failed[0].failure_reason == "user_not_found"
+        assert failed[0].user_id is None
     finally:
         app.dependency_overrides.clear()
