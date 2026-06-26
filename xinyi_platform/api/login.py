@@ -53,6 +53,18 @@ def _get_client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
 
+async def _record_failed_login(session: AsyncSession, request: Request, user: User | None, reason: str):
+    """记录失败的登录尝试到 LoginHistory"""
+    session.add(LoginHistory(
+        user_id=user.id if user else None,
+        ip_address=_get_client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+        success=False,
+        failure_reason=reason,
+    ))
+    await session.commit()
+
+
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, return_to: str | None = Query(default=None)):
     return templates.TemplateResponse(
@@ -80,7 +92,9 @@ async def login_json(
     result = await session.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
     if not user or not user.is_active or not user.password_hash or not verify_password(password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        reason = "user_not_found" if user is None else ("user_disabled" if not user.is_active else "invalid_credentials")
+        await _record_failed_login(session, request, user, reason)
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
 
     user.last_login_at = datetime.now(timezone.utc)
     session.add(LoginHistory(
@@ -121,6 +135,8 @@ async def login_form(
     result = await session.execute(select(User).where(User.username == username))
     user = result.scalar_one_or_none()
     if not user or not user.is_active or not user.password_hash or not verify_password(password, user.password_hash):
+        reason = "user_not_found" if user is None else ("user_disabled" if not user.is_active else "invalid_credentials")
+        await _record_failed_login(session, request, user, reason)
         return templates.TemplateResponse(
             request, "login.html",
             {**_ui_ctx(request), "error": "用户名或密码错误", "return_to": return_to},
