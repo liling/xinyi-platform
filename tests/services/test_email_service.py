@@ -20,22 +20,22 @@ def settings():
     )
 
 
-def test_send_email_smtp_success(settings):
+async def test_send_email_smtp_success(settings):
     with patch("smtplib.SMTP") as mock_smtp:
         instance = MagicMock()
         mock_smtp.return_value.__enter__.return_value = instance
-        EmailService.send(settings, to=["user@example.com"], subject="Hi", body="Body")
+        await EmailService.send(settings, to=["user@example.com"], subject="Hi", body="Body")
         instance.sendmail.assert_called_once()
         args = instance.sendmail.call_args
         assert args[0][0] == "noreply@example.com"
         assert "user@example.com" in args[0][1]
 
 
-def test_send_email_invalid_address_rejected(settings):
+async def test_send_email_invalid_address_rejected(settings):
     with pytest.raises(ValueError):
-        EmailService.send(settings, to=["not-an-email"], subject="x", body="x")
+        await EmailService.send(settings, to=["not-an-email"], subject="x", body="x")
 
 
-def test_send_email_smtp_failure_does_not_raise_to_caller(settings):
+async def test_send_email_smtp_failure_does_not_raise_to_caller(settings):
     with patch("smtplib.SMTP", side_effect=Exception("smtp down")):
-        EmailService.send_safe(settings, to=["user@example.com"], subject="x", body="x")
+        await EmailService.send_safe(settings, to=["user@example.com"], subject="x", body="x")

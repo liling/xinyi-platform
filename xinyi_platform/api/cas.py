@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.auth.cas import CASClient
 from xinyi_platform.auth.request_util import get_client_ip
-from xinyi_platform.auth.session import SELF_AUDIENCE, create_access_token
+from xinyi_platform.auth.session import create_session_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.models.login_history import LoginHistory
@@ -63,9 +63,9 @@ async def cas_callback(
     await OAuthService.clear_revocation(session, user.id)
     await session.commit()
 
-    token = create_access_token(
+    token = create_session_token(
         sub=str(user.id), username=user.username,
-        role=user.role.value, client_id=SELF_AUDIENCE,
+        role=user.role.value,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
     resp = RedirectResponse(url="/account", status_code=303)

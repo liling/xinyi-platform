@@ -3,7 +3,10 @@ from jose import JWTError
 
 from xinyi_platform.auth.session import (
     create_access_token,
+    create_session_token,
     decode_access_token,
+    decode_session_token,
+    decode_token_skip_audience,
     generate_refresh_token,
     hash_refresh_token,
 )
@@ -56,6 +59,33 @@ def test_decode_access_token_wrong_secret():
     )
     with pytest.raises(JWTError):
         decode_access_token(token, "wrong-secret", audience="hm-prod")
+
+
+def test_create_session_token_has_self_audience():
+    token = create_session_token(sub="u1", username="x", role="user", secret=SECRET, ttl_seconds=900)
+    payload = decode_session_token(token, SECRET)
+    assert payload["aud"] == "xinyi-platform-self"
+    assert payload["iss"] == "xinyi-platform"
+    assert payload["type"] == "access"
+
+
+def test_decode_session_token_rejects_other_audience():
+    token = create_access_token(
+        sub="u1", username="x", role="user", client_id="hm-prod",
+        secret=SECRET, ttl_seconds=900,
+    )
+    with pytest.raises(JWTError):
+        decode_session_token(token, SECRET)
+
+
+def test_decode_token_skip_audience_accepts_any_aud():
+    token = create_access_token(
+        sub="u1", username="x", role="user", client_id="hm-prod",
+        secret=SECRET, ttl_seconds=900,
+    )
+    payload = decode_token_skip_audience(token, SECRET)
+    assert payload["sub"] == "u1"
+    assert payload["aud"] == "hm-prod"
 
 
 def test_generate_refresh_token_format():

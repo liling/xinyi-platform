@@ -41,14 +41,14 @@ async def forgot_submit(
     result = await session.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if user is not None:
-        code = f"{secrets.randbelow(1000000):06d}"
+        code = secrets.token_urlsafe(16)
         verification = EmailVerification(
             email=email, code=code, purpose="reset_password",
             expires_at=datetime.now(timezone.utc) + timedelta(minutes=RESET_TTL_MINUTES),
         )
         session.add(verification)
         await session.commit()
-        EmailService.send_safe(
+        await EmailService.send_safe(
             settings,
             to=[email],
             subject="密码重置",

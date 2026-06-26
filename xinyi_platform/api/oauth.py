@@ -1,12 +1,13 @@
 import uuid
 from urllib.parse import urlencode, quote
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Header, Query, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
-from xinyi_platform.auth.session import SELF_AUDIENCE, decode_access_token
+from xinyi_platform.auth.session import decode_session_token, decode_token_skip_audience
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.middleware.csrf import verify_csrf_token
@@ -54,7 +55,7 @@ async def authorize(
 
     from jose import JWTError
     try:
-        payload = decode_access_token(cookie_token, settings.jwt_secret, audience=SELF_AUDIENCE)
+        payload = decode_session_token(cookie_token, settings.jwt_secret)
     except JWTError:
         return RedirectResponse(url="/xinyi/login", status_code=303)
 
@@ -132,3 +133,35 @@ async def revoke(
     await OAuthService.revoke_refresh_token(session, token)
     await session.commit()
     return {"ok": True}
+
+
+async def get_oauth_user(
+    authorization: Optional[str] = Header(default=None),
+) -> dict:
+    """Verify an OAuth Bearer token and return user info.
+
+    Unlike get_current_user, this accepts any audience
+    (business client_id), not just SELF_AUDIENCE.
+    """
+    settings = Settings()
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    token = authorization[7:]
+    from jose import JWTError
+    try:
+        payload = decode_token_skip_audience(token, settings.jwt_secret)
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+    return {
+        "id": payload["sub"],
+        "username": payload.get("username", ""),
+        "role": payload.get("role", ""),
+    }
+
+
+@router.get("/userinfo")
+async def userinfo(user: dict = Depends(get_oauth_user)):
+    """OIDC-style userinfo endpoint. Accepts Bearer access tokens."""
+    return user

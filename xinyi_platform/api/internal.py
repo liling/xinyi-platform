@@ -104,7 +104,7 @@ async def push_audit(
 @router.post("/notifications/email", status_code=202)
 async def send_email(body: dict = Body(...)):
     settings = Settings()
-    EmailService.send_safe(
+    await EmailService.send_safe(
         settings,
         to=body["to"],
         subject=body["subject"],

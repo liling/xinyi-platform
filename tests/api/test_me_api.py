@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from xinyi_platform.auth.session import create_access_token
+from xinyi_platform.auth.session import create_session_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
@@ -13,9 +13,8 @@ from xinyi_platform.models.user import AuthProvider, User, UserRole
 
 def _token(role: str = "admin"):
     s = Settings()
-    return create_access_token(
+    return create_session_token(
         sub="00000000-0000-0000-0000-000000000001", username="alice", role=role,
-        client_id="xinyi-platform-self",
         secret=s.jwt_secret, ttl_seconds=900,
     )
 

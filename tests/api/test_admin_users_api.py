@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from xinyi_platform.auth.dependencies import get_current_user
-from xinyi_platform.auth.session import create_access_token
+from xinyi_platform.auth.session import create_session_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
@@ -18,18 +18,16 @@ async def _noop_csrf():
 
 def _admin_token():
     s = Settings()
-    return create_access_token(
+    return create_session_token(
         sub=str(uuid.uuid4()), username="admin", role="admin",
-        client_id="xinyi-platform-self",
         secret=s.jwt_secret, ttl_seconds=900,
     )
 
 
 def _user_token():
     s = Settings()
-    return create_access_token(
+    return create_session_token(
         sub=str(uuid.uuid4()), username="user", role="user",
-        client_id="xinyi-platform-self",
         secret=s.jwt_secret, ttl_seconds=900,
     )
 

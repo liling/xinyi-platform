@@ -4,7 +4,7 @@ from fastapi import Cookie, Depends, Header, HTTPException, Response, status
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from xinyi_platform.auth.session import SELF_AUDIENCE, decode_access_token
+from xinyi_platform.auth.session import decode_session_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session_or_none
 from xinyi_platform.services.oauth_service import OAuthService
@@ -33,7 +33,7 @@ async def get_current_user(
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     try:
-        payload = decode_access_token(token, settings.jwt_secret, audience=SELF_AUDIENCE)
+        payload = decode_session_token(token, settings.jwt_secret)
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired session")
     if payload.get("type") != "access":
@@ -50,7 +50,8 @@ async def get_current_user(
         }
 
     if session is not None and await OAuthService.is_user_revoked(session, user_id):
-        response.delete_cookie("xinyi_session", path="/")
+        if response is not None:
+            response.delete_cookie("xinyi_session", path="/")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session revoked")
 
     return {

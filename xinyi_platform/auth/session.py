@@ -18,6 +18,12 @@ def create_access_token(
     secret: str,
     ttl_seconds: int,
 ) -> str:
+    """Create a JWT access token.
+
+    audience (aud) is set to client_id.
+    - Session tokens (cookie): client_id=SELF_AUDIENCE → aud="xinyi-platform-self"
+    - OAuth tokens: client_id=<business_client_id> → aud=<client_id>
+    """
     now = datetime.now(timezone.utc)
     payload = {
         "iss": ISSUER,
@@ -33,6 +39,21 @@ def create_access_token(
     return jwt.encode(payload, secret, algorithm=ALGORITHM)
 
 
+def create_session_token(
+    *,
+    sub: str,
+    username: str,
+    role: str,
+    secret: str,
+    ttl_seconds: int,
+) -> str:
+    """Session token (cookie), aud = SELF_AUDIENCE."""
+    return create_access_token(
+        sub=sub, username=username, role=role,
+        client_id=SELF_AUDIENCE, secret=secret, ttl_seconds=ttl_seconds,
+    )
+
+
 def decode_access_token(token: str, secret: str, audience: str) -> dict:
     return jwt.decode(
         token,
@@ -40,6 +61,26 @@ def decode_access_token(token: str, secret: str, audience: str) -> dict:
         algorithms=[ALGORITHM],
         audience=audience,
         issuer=ISSUER,
+    )
+
+
+def decode_session_token(token: str, secret: str) -> dict:
+    """Decode and verify a session token (aud must match SELF_AUDIENCE)."""
+    return decode_access_token(token, secret, audience=SELF_AUDIENCE)
+
+
+def decode_token_skip_audience(token: str, secret: str) -> dict:
+    """Decode and verify a token without checking audience.
+
+    Use for the /oauth/userinfo endpoint where the access token's
+    audience is a business client_id, not SELF_AUDIENCE.
+    """
+    return jwt.decode(
+        token,
+        secret,
+        algorithms=[ALGORITHM],
+        issuer=ISSUER,
+        options={"verify_aud": False},
     )
 
 

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.auth.password import verify_password
 from xinyi_platform.auth.request_util import get_client_ip
-from xinyi_platform.auth.session import SELF_AUDIENCE, create_access_token
+from xinyi_platform.auth.session import create_session_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
@@ -89,9 +89,9 @@ async def login_json(
     await OAuthService.clear_revocation(session, user.id)
     await session.commit()
 
-    token = create_access_token(
+    token = create_session_token(
         sub=str(user.id), username=user.username,
-        role=user.role.value, client_id=SELF_AUDIENCE,
+        role=user.role.value,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
     resp = JSONResponse(content={
@@ -137,9 +137,9 @@ async def login_form(
     await OAuthService.clear_revocation(session, user.id)
     await session.commit()
 
-    token = create_access_token(
+    token = create_session_token(
         sub=str(user.id), username=user.username,
-        role=user.role.value, client_id=SELF_AUDIENCE,
+        role=user.role.value,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
     resp = RedirectResponse(url=return_to, status_code=303)

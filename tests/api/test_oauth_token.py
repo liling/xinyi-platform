@@ -71,3 +71,36 @@ def test_token_unsupported_grant_type_returns_400():
         assert response.status_code == 400
     finally:
         app.dependency_overrides.clear()
+
+
+def test_userinfo_with_valid_bearer_token():
+    from xinyi_platform.auth.session import create_access_token
+    from xinyi_platform.config import Settings
+    s = Settings()
+    token = create_access_token(
+        sub="u-1", username="alice", role="user",
+        client_id="hm-prod", secret=s.jwt_secret, ttl_seconds=900,
+    )
+    client = TestClient(app)
+    response = client.get(
+        "/xinyi/oauth/userinfo",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200
+    assert response.json()["id"] == "u-1"
+    assert response.json()["username"] == "alice"
+
+
+def test_userinfo_without_token_returns_401():
+    client = TestClient(app)
+    response = client.get("/xinyi/oauth/userinfo")
+    assert response.status_code == 401
+
+
+def test_userinfo_with_invalid_token_returns_401():
+    client = TestClient(app)
+    response = client.get(
+        "/xinyi/oauth/userinfo",
+        headers={"Authorization": "Bearer garbage"},
+    )
+    assert response.status_code == 401

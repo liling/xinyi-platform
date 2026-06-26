@@ -31,12 +31,11 @@ def _override_session(scalar_result=None, scalars_result=None):
 def test_list_clients_renders():
     app.dependency_overrides[get_session] = _override_session(scalars_result=[])
     try:
-        from xinyi_platform.auth.session import create_access_token
+        from xinyi_platform.auth.session import create_session_token
         from xinyi_platform.config import Settings
         s = Settings()
-        token = create_access_token(
+        token = create_session_token(
             sub="u-1", username="admin", role="admin",
-            client_id="xinyi-platform-self",
             secret=s.jwt_secret, ttl_seconds=900,
         )
         client = TestClient(app)
@@ -61,12 +60,11 @@ def test_register_client_returns_secret():
         app.dependency_overrides[get_session] = _override_session()
         app.dependency_overrides[verify_csrf_token] = _noop_csrf
         try:
-            from xinyi_platform.auth.session import create_access_token
+            from xinyi_platform.auth.session import create_session_token
             from xinyi_platform.config import Settings
             s = Settings()
-            token = create_access_token(
+            token = create_session_token(
                 sub="u-1", username="admin", role="admin",
-                client_id="xinyi-platform-self",
                 secret=s.jwt_secret, ttl_seconds=900,
             )
             client = TestClient(app)

@@ -19,6 +19,7 @@ def test_openapi_lists_all_routes():
         "/xinyi/register", "/xinyi/password/forgot", "/xinyi/password/reset",
         "/xinyi/cas/login", "/xinyi/cas/callback",
         "/xinyi/oauth/authorize", "/xinyi/oauth/token", "/xinyi/oauth/revoke",
+        "/xinyi/oauth/userinfo",
         "/xinyi/internal/users/batch-get",
         "/xinyi/internal/notifications/email",
         "/xinyi/internal/audit",
