@@ -1,10 +1,8 @@
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
-from xinyi_platform.auth.dependencies import get_current_user
 from xinyi_platform.auth.session import create_session_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session

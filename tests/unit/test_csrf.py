@@ -1,5 +1,3 @@
-import pytest
-from fastapi import HTTPException
 from starlette.testclient import TestClient
 
 from xinyi_platform.auth.csrf import generate_csrf_token, verify_csrf

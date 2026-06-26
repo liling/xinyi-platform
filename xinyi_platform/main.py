@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import delete, select
 
 from xinyi_platform.config import Settings
-from xinyi_platform.db import create_engine, create_session_factory
+from xinyi_platform.db import create_engine, create_session_factory, set_session_factory
 from xinyi_platform.models.oauth_code import OAuthCode
 from xinyi_platform.models.token_revocation import TokenRevocation
 
@@ -98,6 +98,7 @@ async def lifespan(app: FastAPI):
     app_state.settings = settings
     app_state.engine = create_engine(settings)
     app_state.session_factory = create_session_factory(app_state.engine)
+    set_session_factory(app_state.session_factory)
 
     async with app_state.session_factory() as session:
         from xinyi_platform.startup import seed_admin_if_absent

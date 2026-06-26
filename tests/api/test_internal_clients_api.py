@@ -1,12 +1,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import bcrypt
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from xinyi_platform.api.internal_clients import router
-from xinyi_platform.auth.internal_auth import verify_internal_client, verify_registration_token
+from xinyi_platform.auth.internal_auth import verify_registration_token
 
 
 def _make_app():

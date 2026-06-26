@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 
 from xinyi_platform.models.user import AuthProvider, User, UserRole
 

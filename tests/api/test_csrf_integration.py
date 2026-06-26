@@ -1,6 +1,5 @@
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
 from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session

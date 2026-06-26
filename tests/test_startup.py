@@ -2,7 +2,6 @@ import logging
 import uuid
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
 
 from xinyi_platform.config import Settings
 from xinyi_platform.main import settings

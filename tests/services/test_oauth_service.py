@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from xinyi_platform.config import Settings
-from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.models.oauth_code import OAuthCode
 from xinyi_platform.models.refresh_token import RefreshToken
 from xinyi_platform.models.user import AuthProvider, User, UserRole

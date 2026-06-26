@@ -31,9 +31,9 @@ def test_push_event_accepted():
     teardown = _setup_overrides()
     try:
         with patch(
-            "xinyi_platform.api.internal.AuditService.push",
+            "xinyi_platform.api.internal.AuditService.push_safe_from_kwargs",
             new_callable=AsyncMock,
-        ) as mock_push:
+        ) as mock_record:
             client = TestClient(app)
             response = client.post(
                 "/xinyi/internal/audit",
@@ -47,7 +47,7 @@ def test_push_event_accepted():
                 },
             )
         assert response.status_code == 202
-        mock_push.assert_called_once()
+        mock_record.assert_called_once()
     finally:
         teardown()
 
@@ -56,7 +56,7 @@ def test_push_event_user_null_ok():
     teardown = _setup_overrides()
     try:
         with patch(
-            "xinyi_platform.api.internal.AuditService.push",
+            "xinyi_platform.api.internal.AuditService.push_safe_from_kwargs",
             new_callable=AsyncMock,
         ):
             client = TestClient(app)

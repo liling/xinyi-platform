@@ -25,6 +25,22 @@ uv run uvicorn xinyi_platform.main:app --reload --port 8000
 
 Open http://localhost:8000/login — log in with `admin` and `ADMIN_PASSWORD` from `.env`.
 
+## Deployment
+
+### Database Migrations
+
+Do not run migrations inside the application container startup. Instead, apply them as a one-off init-container or standalone job before rolling out the app:
+
+```bash
+# Local / compose
+docker compose -f docker-compose.migrate.yml run --rm migrate
+
+# Kubernetes example
+kubectl create job --from=cronjob/xinyi-migrate xinyi-migrate
+```
+
+The application Dockerfile only starts the HTTP server. Running `alembic upgrade head` at container startup causes races when multiple pods start together.
+
 ## Architecture
 
 - **Postgres schema:** `xinyi` (8 tables: users, business_clients, oauth_codes, refresh_tokens, token_revocations, audit_logs, login_history, email_verifications)

@@ -4,7 +4,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.auth.password import (
-    PasswordStrengthError,
     hash_password,
     validate_password_strength,
     verify_password,

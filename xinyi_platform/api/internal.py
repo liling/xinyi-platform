@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -76,7 +76,7 @@ async def get_user_by_username(
 @router.post("/audit", status_code=202)
 async def push_audit(
     body: dict = Body(...),
-    session: AsyncSession = Depends(get_session),
+    background_tasks: BackgroundTasks = ...,  # noqa: B008
 ):
     user_id_str = body.get("user_id")
     user_id = uuid.UUID(user_id_str) if user_id_str else None
@@ -87,8 +87,8 @@ async def push_audit(
     if occurred_at:
         detail = {**detail, "occurred_at": occurred_at.isoformat()}
 
-    await AuditService.push(
-        session,
+    background_tasks.add_task(
+        AuditService.push_safe_from_kwargs,
         user_id=user_id,
         client_id=body.get("client_id"),
         action=body["action"],
@@ -97,7 +97,6 @@ async def push_audit(
         detail=detail,
         ip_address=body.get("ip_address"),
     )
-    await session.commit()
     return {"status": "accepted"}
 
 

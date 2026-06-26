@@ -1,4 +1,3 @@
-import uuid
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -7,7 +6,7 @@ from fastapi.testclient import TestClient
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
 from xinyi_platform.middleware.csrf import verify_csrf_token
-from xinyi_platform.models.user import AuthProvider, User, UserRole
+from xinyi_platform.models.user import AuthProvider, User
 
 
 def _make_session(scalar_result=None):

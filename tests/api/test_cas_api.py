@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
 
