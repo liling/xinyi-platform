@@ -51,6 +51,14 @@ class AppState:
 app_state = AppState()
 
 
+def _warn_if_session_insecure(settings: Settings) -> None:
+    if not settings.session_secure:
+        logger.warning(
+            "SESSION_SECURE is False — session cookies will be transmitted over HTTP. "
+            "Set XINYI_PLATFORM_SESSION_SECURE=true in production (HTTPS only)."
+        )
+
+
 async def _cleanup_expired_tokens(session_factory):
     now = datetime.now(timezone.utc)
     async with session_factory() as session:
@@ -68,6 +76,8 @@ async def lifespan(app: FastAPI):
     async with app_state.session_factory() as session:
         from xinyi_platform.startup import seed_admin_if_absent
         await seed_admin_if_absent(session, settings)
+
+    _warn_if_session_insecure(settings)
 
     # Populate product switcher from DB
     async with app_state.session_factory() as session:
