@@ -43,8 +43,12 @@ async def authorize(
 
     base_url = client.base_url or ""
     full_uris = [f"{base_url}{u}" for u in (client.redirect_uris or [])]
-    if redirect_uri not in full_uris:
+
+    normalized = f"{base_url}{redirect_uri}" if redirect_uri.startswith("/") else redirect_uri
+    if normalized not in full_uris and redirect_uri not in full_uris:
         raise HTTPException(status_code=400, detail="redirect_uri not allowed")
+
+    target_redirect = normalized
 
     settings = Settings()
     cookie_token = request.cookies.get("xinyi_session")
@@ -64,7 +68,7 @@ async def authorize(
         session,
         client_id=client_id,
         user_id=user_id,
-        redirect_uri=redirect_uri,
+        redirect_uri=target_redirect,
         scope=None,
         ttl_seconds=settings.oauth_code_ttl_seconds,
     )
@@ -75,8 +79,8 @@ async def authorize(
         params["state"] = state
     if return_to:
         params["return_to"] = return_to
-    sep = "&" if "?" in redirect_uri else "?"
-    return RedirectResponse(url=f"{redirect_uri}{sep}{urlencode(params)}", status_code=303)
+    sep = "&" if "?" in target_redirect else "?"
+    return RedirectResponse(url=f"{target_redirect}{sep}{urlencode(params)}", status_code=303)
 
 
 @router.post("/token")

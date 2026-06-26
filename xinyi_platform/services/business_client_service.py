@@ -67,7 +67,8 @@ class BusinessClientService:
             return False
         base_url = client.base_url or ""
         full_uris = [f"{base_url}{u}" for u in (client.redirect_uris or [])]
-        return redirect_uri in full_uris
+        normalized = f"{base_url}{redirect_uri}" if redirect_uri.startswith("/") else redirect_uri
+        return normalized in full_uris or redirect_uri in full_uris
 
     @staticmethod
     async def set_status(session: AsyncSession, client_id: str, status: ClientStatus) -> None:
