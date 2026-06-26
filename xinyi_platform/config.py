@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     manager_schema: str = "xinyi"
 
     jwt_secret: str
-    encryption_key: str
 
     admin_username: str = "admin"
     admin_password: str = ""

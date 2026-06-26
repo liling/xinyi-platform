@@ -14,7 +14,6 @@ docker run -d --name xinyi-pg -p 5432:5432 \
 cp .env.example .env
 # Edit .env — generate secrets:
 #   python -c "import secrets; print(secrets.token_urlsafe(48))"  # JWT_SECRET
-#   python -c "import secrets; print(secrets.token_hex(16))"     # ENCRYPTION_KEY
 
 # 3. Install + migrate
 uv sync --extra dev
