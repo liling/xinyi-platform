@@ -50,4 +50,4 @@ async def register_submit(
             request, "register.html",
             {**build_template_context(request), "error": str(e)}, status_code=200,
         )
-    return RedirectResponse(url="/login?registered=1", status_code=303)
+    return RedirectResponse(url="/xinyi/login?registered=1", status_code=303)

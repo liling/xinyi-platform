@@ -68,7 +68,7 @@ async def cas_callback(
         role=user.role.value,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
-    resp = RedirectResponse(url="/account", status_code=303)
+    resp = RedirectResponse(url="/xinyi/account", status_code=303)
     resp.set_cookie(
         "xinyi_session", token,
         httponly=True, max_age=settings.session_expire_hours * 3600,

@@ -56,7 +56,7 @@ def _render_logout_page(return_to: str, slo_urls: list[str]) -> HTMLResponse:
 @router.get("/logout", response_class=HTMLResponse)
 async def logout_get(
     request: Request,
-    return_to: str = Query("/login"),
+    return_to: str = Query("/xinyi/login"),
     session: AsyncSession | None = Depends(get_session_or_none),
 ):
     slo_urls = []
@@ -68,7 +68,7 @@ async def logout_get(
 @router.post("/logout")
 async def logout(
     request: Request,
-    return_to: str = Form("/login"),
+    return_to: str = Form("/xinyi/login"),
     _csrf=Depends(verify_csrf_token),
     session: AsyncSession | None = Depends(get_session_or_none),
 ):

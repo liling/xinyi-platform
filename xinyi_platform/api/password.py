@@ -123,4 +123,4 @@ async def reset_submit(
 
     verification.verified = True
     await session.commit()
-    return RedirectResponse(url="/login?reset=1", status_code=303)
+    return RedirectResponse(url="/xinyi/login?reset=1", status_code=303)
