@@ -57,6 +57,7 @@ def test_login_json_failure_records_history(client):
     user = _make_user()
     mock = _make_session(user)
     app.dependency_overrides[get_session] = _override_session_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=False):
             response = client.post(
@@ -95,6 +96,7 @@ def test_login_form_failure_records_history(client):
 def test_login_json_failure_user_not_found_records_history(client):
     mock = _make_session(user_for_query=None)
     app.dependency_overrides[get_session] = _override_session_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         response = client.post(
             "/xinyi/login",

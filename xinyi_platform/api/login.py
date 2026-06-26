@@ -60,6 +60,7 @@ async def login_json(
     request: Request,
     body: dict,
     _limiter=Depends(login_limiter),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     settings = Settings()

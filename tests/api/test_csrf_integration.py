@@ -52,3 +52,33 @@ def test_register_with_csrf_succeeds():
         assert resp.status_code != 403
     finally:
         app.dependency_overrides.clear()
+
+
+def test_json_login_requires_csrf_header():
+    """JSON 登录无 CSRF header 应 403"""
+    client = TestClient(app)
+    app.dependency_overrides[get_session] = _override_session
+    try:
+        resp = client.post("/xinyi/login", json={
+            "username": "admin",
+            "password": "test",
+        })
+        assert resp.status_code == 403
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_json_login_with_csrf_header():
+    """JSON 登录带正确 X-CSRF-Token header 应通过 CSRF 检查"""
+    client = TestClient(app)
+    app.dependency_overrides[get_session] = _override_session
+    try:
+        page = client.get("/xinyi/login")
+        token = page.cookies.get("xinyi_csrf", "")
+        resp = client.post("/xinyi/login", json={
+            "username": "admin",
+            "password": "test",
+        }, headers={"X-CSRF-Token": token}, cookies={"xinyi_csrf": token})
+        assert resp.status_code != 403
+    finally:
+        app.dependency_overrides.clear()

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from xinyi_platform.auth.session import SELF_AUDIENCE, decode_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.services.oauth_service import OAuthService
 
@@ -122,6 +123,7 @@ async def token(
 @router.post("/revoke")
 async def revoke(
     body: dict = Body(...),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     token = body.get("token")

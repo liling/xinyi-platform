@@ -4,6 +4,11 @@ from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
+from xinyi_platform.middleware.csrf import verify_csrf_token
+
+
+async def _noop_csrf():
+    pass
 
 
 def _override_session():
@@ -21,6 +26,7 @@ def test_revoke_clears_refresh_token():
         new_callable=AsyncMock,
     ) as mock_revoke:
         app.dependency_overrides[get_session] = _override_session()
+        app.dependency_overrides[verify_csrf_token] = _noop_csrf
         try:
             client = TestClient(app)
             response = client.post("/xinyi/oauth/revoke", json={"token": "raw-refresh-token"})
@@ -32,6 +38,7 @@ def test_revoke_clears_refresh_token():
 
 def test_revoke_missing_token_returns_400():
     app.dependency_overrides[get_session] = _override_session()
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         client = TestClient(app)
         response = client.post("/xinyi/oauth/revoke", json={})

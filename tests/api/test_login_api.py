@@ -85,6 +85,7 @@ def test_login_json_api_success(client):
     )
     mock = _make_session(user)
     app.dependency_overrides[get_session] = _override_session_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=True):
             response = client.post(
