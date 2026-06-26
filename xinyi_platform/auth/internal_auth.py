@@ -1,3 +1,5 @@
+import secrets
+
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +24,8 @@ async def verify_registration_token(
     x_registration_token: str = Header(..., alias="X-Registration-Token"),
 ) -> str:
     settings = get_settings()
-    if not settings.registration_token or x_registration_token != settings.registration_token:
+    if not settings.registration_token:
+        raise HTTPException(status_code=500, detail="Registration token not configured")
+    if not secrets.compare_digest(x_registration_token, settings.registration_token):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid registration token")
     return x_registration_token
