@@ -4,12 +4,10 @@ from fastapi import Cookie, Depends, Header, HTTPException, Response, status
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from xinyi_platform.auth.session import decode_access_token
+from xinyi_platform.auth.session import SELF_AUDIENCE, decode_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session_or_none
 from xinyi_platform.services.oauth_service import OAuthService
-
-SELF_CLIENT_ID = "xinyi-platform-self"
 
 
 def _get_settings() -> Settings:
@@ -35,7 +33,7 @@ async def get_current_user(
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     try:
-        payload = decode_access_token(token, settings.jwt_secret, audience=SELF_CLIENT_ID)
+        payload = decode_access_token(token, settings.jwt_secret, audience=SELF_AUDIENCE)
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired session")
     if payload.get("type") != "access":

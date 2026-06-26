@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import select
 
+from xinyi_platform.auth.session import SELF_AUDIENCE
 from xinyi_platform.config import Settings
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.services.oauth_service import OAuthService
@@ -21,7 +22,7 @@ async def _render_slo_page(request: Request, return_to: str) -> HTMLResponse:
         from jose import JWTError
         from xinyi_platform.auth.session import decode_access_token
         try:
-            payload = decode_access_token(cookie_token, settings.jwt_secret, audience="xinyi-platform-self")
+            payload = decode_access_token(cookie_token, settings.jwt_secret, audience=SELF_AUDIENCE)
             user_id = payload.get("sub")
         except JWTError:
             pass

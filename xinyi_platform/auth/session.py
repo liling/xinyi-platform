@@ -6,6 +6,7 @@ from jose import jwt
 
 ALGORITHM = "HS256"
 ISSUER = "xinyi-platform"
+SELF_AUDIENCE = "xinyi-platform-self"
 
 
 def create_access_token(

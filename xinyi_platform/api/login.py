@@ -6,7 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.auth.password import verify_password
-from xinyi_platform.auth.session import create_access_token
+from xinyi_platform.auth.request_util import get_client_ip
+from xinyi_platform.auth.session import SELF_AUDIENCE, create_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
@@ -18,7 +19,6 @@ from xinyi_platform.services.oauth_service import OAuthService
 router = APIRouter(tags=["auth"])
 
 templates = make_templates()
-SELF_CLIENT_ID = "xinyi-platform-self"
 
 
 def _ui_ctx(request):
@@ -46,18 +46,11 @@ def _set_session_cookie(response, token: str, settings: Settings) -> None:
     )
 
 
-def _get_client_ip(request: Request) -> str | None:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else None
-
-
 async def _record_failed_login(session: AsyncSession, request: Request, user: User | None, reason: str):
     """记录失败的登录尝试到 LoginHistory"""
     session.add(LoginHistory(
         user_id=user.id if user else None,
-        ip_address=_get_client_ip(request),
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         success=False,
         failure_reason=reason,
@@ -99,7 +92,7 @@ async def login_json(
     user.last_login_at = datetime.now(timezone.utc)
     session.add(LoginHistory(
         user_id=user.id,
-        ip_address=_get_client_ip(request),
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         success=True,
     ))
@@ -108,7 +101,7 @@ async def login_json(
 
     token = create_access_token(
         sub=str(user.id), username=user.username,
-        role=user.role.value, client_id=SELF_CLIENT_ID,
+        role=user.role.value, client_id=SELF_AUDIENCE,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
     resp = JSONResponse(content={
@@ -146,7 +139,7 @@ async def login_form(
     user.last_login_at = datetime.now(timezone.utc)
     session.add(LoginHistory(
         user_id=user.id,
-        ip_address=_get_client_ip(request),
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         success=True,
     ))
@@ -155,7 +148,7 @@ async def login_form(
 
     token = create_access_token(
         sub=str(user.id), username=user.username,
-        role=user.role.value, client_id=SELF_CLIENT_ID,
+        role=user.role.value, client_id=SELF_AUDIENCE,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
     resp = RedirectResponse(url=return_to, status_code=303)

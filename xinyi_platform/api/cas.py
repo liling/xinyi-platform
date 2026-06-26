@@ -6,7 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.auth.cas import CASClient
-from xinyi_platform.auth.session import create_access_token
+from xinyi_platform.auth.request_util import get_client_ip
+from xinyi_platform.auth.session import SELF_AUDIENCE, create_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.models.login_history import LoginHistory
@@ -14,18 +15,10 @@ from xinyi_platform.models.user import AuthProvider, User
 from xinyi_platform.services.oauth_service import OAuthService
 
 router = APIRouter(prefix="/cas", tags=["auth"])
-SELF_CLIENT_ID = "xinyi-platform-self"
 
 
 def _make_cas_client(settings: Settings) -> CASClient:
     return CASClient(settings.cas_server_url, settings.cas_service_url)
-
-
-def _get_client_ip(request: Request) -> str | None:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else None
 
 
 @router.get("/login")
@@ -63,7 +56,7 @@ async def cas_callback(
     user.last_login_at = datetime.now(timezone.utc)
     session.add(LoginHistory(
         user_id=user.id,
-        ip_address=_get_client_ip(request),
+        ip_address=get_client_ip(request),
         user_agent=request.headers.get("user-agent"),
         success=True,
     ))
@@ -72,7 +65,7 @@ async def cas_callback(
 
     token = create_access_token(
         sub=str(user.id), username=user.username,
-        role=user.role.value, client_id=SELF_CLIENT_ID,
+        role=user.role.value, client_id=SELF_AUDIENCE,
         secret=settings.jwt_secret, ttl_seconds=settings.session_expire_hours * 3600,
     )
     resp = RedirectResponse(url="/account", status_code=303)

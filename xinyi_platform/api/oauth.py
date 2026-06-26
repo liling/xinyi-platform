@@ -6,15 +6,13 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from xinyi_platform.auth.session import decode_access_token
+from xinyi_platform.auth.session import SELF_AUDIENCE, decode_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.services.oauth_service import OAuthService
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
-
-SELF_AUDIENCE = "xinyi-platform-self"
 
 
 async def get_business_client_by_id(session: AsyncSession, client_id: str) -> BusinessClient | None:
