@@ -28,10 +28,11 @@ def test_logout_get_renders_page():
     assert "退出" in response.text
 
 
-def test_logout_get_does_not_clear_cookie():
-    """GET should only render page, not clear session."""
+def test_logout_get_clears_cookie_but_does_not_revoke():
+    """GET should delete session cookie but not require CSRF."""
     client = TestClient(app)
     response = client.get("/xinyi/logout", follow_redirects=False)
+    assert response.status_code == 200
     cookie_header = response.headers.get("set-cookie", "")
-    assert "xinyi_session=;" not in cookie_header
-    assert "xinyi_session=" not in cookie_header
+    assert "xinyi_session=" in cookie_header
+    assert "退出" in response.text

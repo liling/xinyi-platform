@@ -10,7 +10,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div id="user-menu" class="user-menu-dropdown hidden">
-                <a class="user-menu-item" href="{{ platform_url }}/xinyi/account">个人中心</a>
+                <a class="user-menu-item" href="{{ platform_url }}/account">个人中心</a>
                 <hr class="user-menu-divider">
                 <form method="post" action="{{ service_prefix }}{% if current_service == 'platform' %}/logout{% else %}/auth/logout{% endif %}" style="margin:0;padding:0">
                     {% if csrf_token %}<input type="hidden" name="csrf_token" value="{{ csrf_token }}">{% endif %}

@@ -62,7 +62,9 @@ async def logout_get(
     slo_urls = []
     if session is not None:
         slo_urls = await _get_slo_urls(session)
-    return _render_logout_page(return_to, slo_urls)
+    resp = _render_logout_page(return_to, slo_urls)
+    resp.delete_cookie("xinyi_session", path="/")
+    return resp
 
 
 @router.post("/logout")

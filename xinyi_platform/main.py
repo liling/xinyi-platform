@@ -86,7 +86,7 @@ async def _build_products(session_factory, settings) -> list:
         ]
         return build_product_list(
             active_dicts,
-            platform_url=settings.base_url,
+            platform_url=f"{settings.base_url}/xinyi",
             self_client_id="platform",
             self_name=settings.brand_name,
             self_home_path="/account",
@@ -143,7 +143,7 @@ install_ui(
     current_service="platform",
     nav_menu=PLATFORM_NAV_MENU,
     brand=settings.brand_name,
-    platform_url=settings.base_url,
+    platform_url=f"{settings.base_url}/xinyi",
     service_prefix="/xinyi",
 )
 
