@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.auth.password import verify_password
 from xinyi_platform.auth.request_util import get_client_ip
 from xinyi_platform.auth.session import SELF_AUDIENCE, create_access_token
@@ -19,19 +20,6 @@ from xinyi_platform.services.oauth_service import OAuthService
 router = APIRouter(tags=["auth"])
 
 templates = make_templates()
-
-
-def _ui_ctx(request):
-    ui = request.app.state.ui
-    return {
-        "current_service": ui["current_service"],
-        "nav_menu": ui["nav_menu"],
-        "brand": ui["brand"],
-        "products": ui["products"],
-        "platform_url": ui["platform_url"],
-        "manager_url": ui.get("manager_url", ""),
-        "service_prefix": ui.get("service_prefix", ""),
-    }
 
 
 def _set_session_cookie(response, token: str, settings: Settings) -> None:
@@ -62,7 +50,7 @@ async def _record_failed_login(session: AsyncSession, request: Request, user: Us
 async def login_page(request: Request, return_to: str | None = Query(default=None)):
     return templates.TemplateResponse(
         request, "login.html",
-        {**_ui_ctx(request), "return_to": return_to or "/xinyi/account"},
+        {**build_template_context(request), "return_to": return_to or "/xinyi/account"},
     )
 
 
@@ -132,7 +120,7 @@ async def login_form(
         await _record_failed_login(session, request, user, reason)
         return templates.TemplateResponse(
             request, "login.html",
-            {**_ui_ctx(request), "error": "用户名或密码错误", "return_to": return_to},
+            {**build_template_context(request), "error": "用户名或密码错误", "return_to": return_to},
             status_code=200,
         )
 

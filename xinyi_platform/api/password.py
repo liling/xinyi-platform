@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
@@ -22,22 +23,9 @@ RESET_TTL_MINUTES = 30
 RESET_MAX_ATTEMPTS = 5
 
 
-def _ui_ctx(request):
-    ui = request.app.state.ui
-    return {
-        "current_service": ui["current_service"],
-        "nav_menu": ui["nav_menu"],
-        "brand": ui["brand"],
-        "products": ui["products"],
-        "platform_url": ui["platform_url"],
-        "manager_url": ui.get("manager_url", ""),
-        "service_prefix": ui.get("service_prefix", ""),
-    }
-
-
 @router.get("/forgot", response_class=HTMLResponse)
 async def forgot_page(request: Request):
-    return templates.TemplateResponse(request, "forgot_password.html", _ui_ctx(request))
+    return templates.TemplateResponse(request, "forgot_password.html", build_template_context(request))
 
 
 @router.post("/forgot")
@@ -66,7 +54,7 @@ async def forgot_submit(
         )
     return templates.TemplateResponse(
         request, "forgot_password.html",
-        {**_ui_ctx(request), "info": "如果邮箱存在,重置码已发送"},
+        {**build_template_context(request), "info": "如果邮箱存在,重置码已发送"},
     )
 
 
@@ -74,7 +62,7 @@ async def forgot_submit(
 async def reset_page(request: Request, email: str = "", code: str = ""):
     return templates.TemplateResponse(
         request, "reset_password.html",
-        {**_ui_ctx(request), "email": email, "code": code},
+        {**build_template_context(request), "email": email, "code": code},
     )
 
 
@@ -98,20 +86,20 @@ async def reset_submit(
     if verification is None:
         return templates.TemplateResponse(
             request, "reset_password.html",
-            {**_ui_ctx(request), "email": email, "error": "验证码无效"}, status_code=400,
+            {**build_template_context(request), "email": email, "error": "验证码无效"}, status_code=400,
         )
 
     if verification.expires_at < datetime.now(timezone.utc):
         return templates.TemplateResponse(
             request, "reset_password.html",
-            {**_ui_ctx(request), "email": email, "error": "验证码已过期"}, status_code=400,
+            {**build_template_context(request), "email": email, "error": "验证码已过期"}, status_code=400,
         )
 
     verification.attempts += 1
     if verification.attempts > RESET_MAX_ATTEMPTS:
         return templates.TemplateResponse(
             request, "reset_password.html",
-            {**_ui_ctx(request), "email": email, "error": "尝试次数过多"}, status_code=400,
+            {**build_template_context(request), "email": email, "error": "尝试次数过多"}, status_code=400,
         )
 
     user_result = await session.execute(select(User).where(User.email == email))
@@ -119,7 +107,7 @@ async def reset_submit(
     if user is None:
         return templates.TemplateResponse(
             request, "reset_password.html",
-            {**_ui_ctx(request), "email": email, "error": "用户不存在"}, status_code=400,
+            {**build_template_context(request), "email": email, "error": "用户不存在"}, status_code=400,
         )
 
     try:
@@ -127,7 +115,7 @@ async def reset_submit(
     except ValueError as e:
         return templates.TemplateResponse(
             request, "reset_password.html",
-            {**_ui_ctx(request), "email": email, "error": str(e)}, status_code=400,
+            {**build_template_context(request), "email": email, "error": str(e)}, status_code=400,
         )
 
     verification.verified = True

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.auth.dependencies import get_current_user
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
@@ -11,19 +12,6 @@ from xinyi_platform.models.user import User
 
 router = APIRouter(tags=["auth"])
 templates = make_templates()
-
-
-def _ui_ctx(request):
-    ui = request.app.state.ui
-    return {
-        "current_service": ui["current_service"],
-        "nav_menu": ui["nav_menu"],
-        "brand": ui["brand"],
-        "products": ui["products"],
-        "platform_url": ui["platform_url"],
-        "manager_url": ui.get("manager_url", ""),
-        "service_prefix": ui.get("service_prefix", ""),
-    }
 
 
 @router.get("/me")
@@ -51,5 +39,5 @@ async def account_page(
     }
     return templates.TemplateResponse(
         request, "account.html",
-        {**_ui_ctx(request), "current_user": full_user},
+        {**build_template_context(request), "current_user": full_user},
     )

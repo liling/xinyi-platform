@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.auth.dependencies import get_current_user, require_admin
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
@@ -13,19 +14,6 @@ from xinyi_platform.services.user_service import UsernameConflictError, UserServ
 
 router = APIRouter(prefix="/admin/users", tags=["admin"], dependencies=[Depends(require_admin)])
 templates = make_templates()
-
-
-def _ui_ctx(request):
-    ui = request.app.state.ui
-    return {
-        "current_service": ui["current_service"],
-        "nav_menu": ui["nav_menu"],
-        "brand": ui["brand"],
-        "products": ui["products"],
-        "platform_url": ui["platform_url"],
-        "manager_url": ui.get("manager_url", ""),
-        "service_prefix": ui.get("service_prefix", ""),
-    }
 
 
 @router.get("", response_class=HTMLResponse)
@@ -41,7 +29,7 @@ async def list_users(
     users = result.scalars().all()
     return templates.TemplateResponse(
         request, "admin/users.html",
-        {**_ui_ctx(request), "current_user": current_user, "users": users, "page": page, "size": size},
+        {**build_template_context(request), "current_user": current_user, "users": users, "page": page, "size": size},
     )
 
 
@@ -52,7 +40,7 @@ async def new_user_form(
 ):
     return templates.TemplateResponse(
         request, "admin/user_form.html",
-        {**_ui_ctx(request), "current_user": current_user, "user": None},
+        {**build_template_context(request), "current_user": current_user, "user": None},
     )
 
 
@@ -92,7 +80,7 @@ async def edit_user_form(
         raise HTTPException(status_code=404)
     return templates.TemplateResponse(
         request, "admin/user_form.html",
-        {**_ui_ctx(request), "current_user": current_user, "user": user},
+        {**build_template_context(request), "current_user": current_user, "user": user},
     )
 
 
