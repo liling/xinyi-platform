@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.middleware.rate_limit import register_limiter
 from xinyi_platform.models.user import AuthProvider
 from xinyi_platform.services.user_service import UsernameConflictError, UserService
@@ -26,6 +27,7 @@ async def register_submit(
     email: str = Form(None),
     display_name: str = Form(...),
     _limiter=Depends(register_limiter),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     try:

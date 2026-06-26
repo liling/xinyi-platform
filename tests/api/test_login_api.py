@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.user import AuthProvider, User, UserRole
 
 
@@ -16,6 +17,10 @@ def _make_session(user_for_query=None):
     session.execute.return_value.scalar_one_or_none.return_value = user_for_query
     session.commit = AsyncMock()
     return session
+
+
+async def _noop_csrf():
+    pass
 
 
 def _override_session_factory(mock_session):
@@ -37,6 +42,7 @@ def test_login_form_success_sets_cookie(client):
     )
     mock = _make_session(user)
     app.dependency_overrides[get_session] = _override_session_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=True):
             response = client.post(
@@ -58,6 +64,7 @@ def test_login_form_wrong_password_returns_login_page(client):
     )
     mock = _make_session(user)
     app.dependency_overrides[get_session] = _override_session_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=False):
             response = client.post(

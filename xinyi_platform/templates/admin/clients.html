@@ -25,10 +25,12 @@
                     <button class="btn btn-secondary btn-sm" onclick='showEditModal({{ c | tojson }})'>编辑</button>
                     {% if c.status == 'active' %}
                         <form method="post" action="/xinyi/admin/clients/{{ c.client_id }}/disable" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <button class="btn btn-danger btn-sm">禁用</button>
                         </form>
                     {% else %}
                         <form method="post" action="/xinyi/admin/clients/{{ c.client_id }}/enable" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <button class="btn btn-primary btn-sm">启用</button>
                         </form>
                     {% endif %}
@@ -79,6 +81,7 @@
             </div>
         </form>
         <script>
+        const CSRF_TOKEN = "{{ csrf_token }}";
         async function registerClient(event) {
             event.preventDefault();
             const form = event.target;
@@ -95,7 +98,7 @@
             };
             const r = await fetch('/admin/clients', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN},
                 body: JSON.stringify(body),
             });
             if (r.ok) {
@@ -186,7 +189,7 @@ async function updateClient(event) {
     };
     const r = await fetch('/admin/clients/' + encodeURIComponent(clientId), {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'X-CSRF-Token': CSRF_TOKEN},
         body: JSON.stringify(body),
     });
     if (r.ok) {

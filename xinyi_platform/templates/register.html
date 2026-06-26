@@ -2,6 +2,7 @@
 {% block title %}注册{% endblock %}
 {% block auth_body %}
 <form method="post" action="/xinyi/register">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div class="form-group">
         <label>用户名</label>
         <input type="text" name="username" required>

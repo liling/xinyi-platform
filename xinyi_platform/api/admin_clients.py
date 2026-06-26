@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.auth.dependencies import get_current_user, require_admin
 from xinyi_platform.db import get_session
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.jinja_env import make_templates
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.services.business_client_service import (
@@ -47,6 +48,7 @@ async def list_clients(
 @router.post("")
 async def register_client(
     body: dict = Body(...),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     try:
@@ -83,6 +85,7 @@ async def register_client(
 async def update_client(
     client_id: str,
     body: dict = Body(...),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(
@@ -119,6 +122,7 @@ async def update_client(
 @router.post("/{client_id}/disable")
 async def disable_client(
     client_id: str,
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     await BusinessClientService.set_status(session, client_id, ClientStatus.DISABLED)
@@ -129,6 +133,7 @@ async def disable_client(
 @router.post("/{client_id}/enable")
 async def enable_client(
     client_id: str,
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     await BusinessClientService.set_status(session, client_id, ClientStatus.ACTIVE)

@@ -12,6 +12,7 @@ from xinyi_platform.auth.session import SELF_AUDIENCE, create_access_token
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.middleware.rate_limit import login_limiter
 from xinyi_platform.models.login_history import LoginHistory
 from xinyi_platform.models.user import User
@@ -110,6 +111,7 @@ async def login_form(
     password: str = Form(...),
     return_to: str = Form("/xinyi/account"),
     _limiter=Depends(login_limiter),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     settings = Settings()

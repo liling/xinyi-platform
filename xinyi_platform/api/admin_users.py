@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.auth.dependencies import get_current_user, require_admin
 from xinyi_platform.db import get_session
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.jinja_env import make_templates
 from xinyi_platform.models.user import AuthProvider, User, UserRole
 from xinyi_platform.services.user_service import UsernameConflictError, UserService
@@ -48,6 +49,7 @@ async def new_user_form(
 async def create_user(
     request: Request,
     body: dict = Body(...),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     try:
@@ -88,6 +90,7 @@ async def edit_user_form(
 async def update_user(
     user_id: uuid.UUID,
     body: dict = Body(...),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     user = await session.get(User, user_id)
@@ -106,6 +109,7 @@ async def update_user(
 @router.post("/{user_id}/delete")
 async def delete_user(
     user_id: uuid.UUID,
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     await UserService.soft_delete(session, user_id)

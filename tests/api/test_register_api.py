@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.user import AuthProvider, User, UserRole
 
 
@@ -19,6 +20,10 @@ def _make_session(scalar_result=None):
     session.commit = AsyncMock()
     session.get = AsyncMock()
     return session
+
+
+async def _noop_csrf():
+    pass
 
 
 def _override_factory(mock):
@@ -35,6 +40,7 @@ def client():
 def test_register_success(client):
     mock = _make_session(scalar_result=None)
     app.dependency_overrides[get_session] = _override_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         response = client.post("/xinyi/register", data={
             "username": "newbie", "password": "MyStrong123!",
@@ -49,6 +55,7 @@ def test_register_duplicate_username(client):
     existing = User(username="newbie", display_name="x", auth_provider=AuthProvider.LOCAL)
     mock = _make_session(scalar_result=existing)
     app.dependency_overrides[get_session] = _override_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         response = client.post("/xinyi/register", data={
             "username": "newbie", "password": "MyStrong123!",

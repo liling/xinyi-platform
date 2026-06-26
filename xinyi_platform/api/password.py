@@ -10,6 +10,7 @@ from xinyi_platform.api._shared import build_template_context
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session
 from xinyi_platform.jinja_env import make_templates
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.middleware.rate_limit import password_reset_limiter
 from xinyi_platform.models.email_verification import EmailVerification
 from xinyi_platform.models.user import User
@@ -33,6 +34,7 @@ async def forgot_submit(
     request: Request,
     email: str = Form(...),
     _limiter=Depends(password_reset_limiter),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     settings = Settings()
@@ -72,6 +74,7 @@ async def reset_submit(
     email: str = Form(...),
     code: str = Form(...),
     new_password: str = Form(...),
+    _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     result = await session.execute(

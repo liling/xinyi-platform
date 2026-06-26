@@ -4,7 +4,12 @@ from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
+
+
+async def _noop_csrf():
+    pass
 
 
 def _override_session(scalar_result=None, scalars_result=None):
@@ -54,6 +59,7 @@ def test_register_client_returns_secret():
         new_callable=AsyncMock, return_value=(fake, "raw-secret"),
     ):
         app.dependency_overrides[get_session] = _override_session()
+        app.dependency_overrides[verify_csrf_token] = _noop_csrf
         try:
             from xinyi_platform.auth.session import create_access_token
             from xinyi_platform.config import Settings

@@ -6,8 +6,13 @@ from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.login_history import LoginHistory
 from xinyi_platform.models.user import AuthProvider, User, UserRole
+
+
+async def _noop_csrf():
+    pass
 
 
 def _make_session(user_for_query=None):
@@ -71,6 +76,7 @@ def test_login_form_failure_records_history(client):
     user = _make_user()
     mock = _make_session(user)
     app.dependency_overrides[get_session] = _override_session_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         with patch("xinyi_platform.api.login.verify_password", return_value=False):
             response = client.post(

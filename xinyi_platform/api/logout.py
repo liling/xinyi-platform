@@ -1,13 +1,14 @@
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Cookie, Form, Query, Request
+from fastapi import APIRouter, Cookie, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import select
 
 from xinyi_platform.auth.session import SELF_AUDIENCE
 from xinyi_platform.config import Settings
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.services.oauth_service import OAuthService
 
@@ -62,6 +63,7 @@ async def _render_slo_page(request: Request, return_to: str) -> HTMLResponse:
 async def logout(
     request: Request,
     return_to: str = Form("/login"),
+    _csrf=Depends(verify_csrf_token),
 ):
     return await _render_slo_page(request, return_to)
 

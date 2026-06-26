@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from xinyi_platform.db import get_session
 from xinyi_platform.main import app
+from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.email_verification import EmailVerification
 from xinyi_platform.models.user import AuthProvider, User
 
@@ -21,6 +22,10 @@ def _make_session(scalar_result=None):
     session.commit = AsyncMock()
     session.get = AsyncMock()
     return session
+
+
+async def _noop_csrf():
+    pass
 
 
 def _override_factory(mock):
@@ -41,6 +46,7 @@ def test_forgot_password_sends_email(client):
     )
     mock = _make_session(scalar_result=user)
     app.dependency_overrides[get_session] = _override_factory(mock)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         with patch("xinyi_platform.api.password.EmailService.send_safe") as mock_send:
             response = client.post("/xinyi/password/forgot", data={"email": "alice@example.com"})
@@ -77,6 +83,7 @@ def test_reset_password_with_valid_token(client):
     session.get = AsyncMock(return_value=user)
 
     app.dependency_overrides[get_session] = _override_factory(session)
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
     try:
         response = client.post("/xinyi/password/reset", data={
             "email": "alice@example.com", "code": "123456",
