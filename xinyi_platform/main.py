@@ -132,6 +132,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="xinyi-platform", version="0.1.0", lifespan=lifespan)
 
+from xinyi_platform.middleware.csrf import CsrfMiddleware
+
+app.add_middleware(CsrfMiddleware)
+
 from xinyi_platform.ui_common import install_ui
 
 install_ui(
