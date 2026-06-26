@@ -67,6 +67,32 @@ async def _cleanup_expired_tokens(session_factory):
         await session.commit()
 
 
+async def _build_products(session_factory, settings) -> list:
+    from xinyi_platform.models.business_client import BusinessClient, ClientStatus
+    from xinyi_platform.ui_common.service_discovery import build_product_list
+
+    async with session_factory() as session:
+        result = await session.execute(
+            select(BusinessClient).where(
+                BusinessClient.status == ClientStatus.ACTIVE,
+                BusinessClient.base_url.isnot(None),
+            ).order_by(BusinessClient.name)
+        )
+        active = result.scalars().all()
+        active_dicts = [
+            {"client_id": c.client_id, "name": c.name, "base_url": c.base_url,
+             "home_path": c.home_path or "", "description": c.description or ""}
+            for c in active
+        ]
+        return build_product_list(
+            active_dicts,
+            platform_url=settings.base_url,
+            self_client_id="platform",
+            self_name=settings.brand_name,
+            self_home_path="/account",
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_state.settings = settings
@@ -79,35 +105,7 @@ async def lifespan(app: FastAPI):
 
     _warn_if_session_insecure(settings)
 
-    # Populate product switcher from DB
-    async with app_state.session_factory() as session:
-        from xinyi_platform.models.business_client import BusinessClient, ClientStatus
-        from xinyi_platform.ui_common.service_discovery import build_product_list
-
-        result = await session.execute(
-            select(BusinessClient).where(
-                BusinessClient.status == ClientStatus.ACTIVE,
-                BusinessClient.base_url.isnot(None),
-            ).order_by(BusinessClient.name)
-        )
-        active = result.scalars().all()
-        active_dicts = [
-            {
-                "client_id": c.client_id,
-                "name": c.name,
-                "base_url": c.base_url,
-                "home_path": c.home_path or "",
-                "description": c.description or "",
-            }
-            for c in active
-        ]
-        app.state.ui["products"] = build_product_list(
-            active_dicts,
-            platform_url=settings.base_url,
-            self_client_id="platform",
-            self_name=settings.brand_name,
-            self_home_path="/account",
-        )
+    app.state.ui["products"] = await _build_products(app_state.session_factory, settings)
 
     scheduler = AsyncIOScheduler(timezone="UTC")
     scheduler.add_job(
@@ -120,29 +118,7 @@ async def lifespan(app: FastAPI):
     )
 
     async def _refresh_products():
-        from xinyi_platform.models.business_client import BusinessClient, ClientStatus
-        from xinyi_platform.ui_common.service_discovery import build_product_list
-
-        async with app_state.session_factory() as session:
-            result = await session.execute(
-                select(BusinessClient).where(
-                    BusinessClient.status == ClientStatus.ACTIVE,
-                    BusinessClient.base_url.isnot(None),
-                ).order_by(BusinessClient.name)
-            )
-            active = result.scalars().all()
-            active_dicts = [
-                {"client_id": c.client_id, "name": c.name, "base_url": c.base_url,
-                 "home_path": c.home_path or "", "description": c.description or ""}
-                for c in active
-            ]
-            app.state.ui["products"] = build_product_list(
-                active_dicts,
-                platform_url=settings.base_url,
-                self_client_id="platform",
-                self_name=settings.brand_name,
-                self_home_path="/account",
-            )
+        app.state.ui["products"] = await _build_products(app_state.session_factory, settings)
 
     scheduler.add_job(_refresh_products, "interval", minutes=5, id="refresh-products", replace_existing=True)
     scheduler.start()
