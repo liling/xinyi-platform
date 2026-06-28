@@ -78,6 +78,11 @@ async def push_audit(
     body: dict = Body(...),
     background_tasks: BackgroundTasks = ...,  # noqa: B008
 ):
+    required = ["action", "resource_type", "resource_id"]
+    missing = [k for k in required if k not in body]
+    if missing:
+        raise HTTPException(status_code=422, detail=f"Missing required fields: {', '.join(missing)}")
+
     user_id_str = body.get("user_id")
     user_id = uuid.UUID(user_id_str) if user_id_str else None
     occurred_at_str = body.get("occurred_at")
