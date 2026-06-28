@@ -1,10 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import delete, select
 
@@ -168,6 +169,16 @@ app.include_router(admin_users.router, prefix="/xinyi")
 app.include_router(admin_clients.router, prefix="/xinyi")
 app.include_router(admin_audit.router, prefix="/xinyi")
 app.include_router(admin_login_history.router, prefix="/xinyi")
+
+
+@app.exception_handler(HTTPException)
+async def redirect_unauthenticated_browser_to_login(request: Request, exc: HTTPException):
+    if exc.status_code == 401 and "text/html" in request.headers.get("accept", ""):
+        return RedirectResponse(
+            url=f"/xinyi/login?return_to={quote(request.url.path)}",
+            status_code=302,
+        )
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 @app.get("/xinyi/")

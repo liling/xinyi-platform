@@ -68,3 +68,25 @@ def test_account_page_shows_all_six_profile_fields():
             assert label in html, f"missing field label: {label}"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_account_page_unauthenticated_redirects_to_login():
+    """Browser navigation (Accept: text/html) to a protected page without a
+    session should redirect to /login, not return 401 JSON."""
+    client = TestClient(app)
+    resp = client.get(
+        "/xinyi/account", headers={"Accept": "text/html"}, follow_redirects=False
+    )
+    assert resp.status_code in (301, 302, 303, 307)
+    location = resp.headers["location"]
+    assert location.startswith("/xinyi/login")
+    assert "return_to=" in location
+
+
+def test_api_unauthenticated_keeps_401_json():
+    """Non-browser requests (no Accept: text/html) must keep returning 401 JSON
+    so the auth handler does not redirect API clients."""
+    client = TestClient(app)
+    resp = client.get("/xinyi/me", follow_redirects=False)
+    assert resp.status_code == 401
+    assert "detail" in resp.json()
