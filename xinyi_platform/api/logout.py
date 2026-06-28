@@ -1,14 +1,13 @@
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse
-from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from xinyi_platform.config import Settings
 from xinyi_platform.db import get_session_or_none
+from xinyi_platform.jinja_env import make_templates
 from xinyi_platform.middleware.csrf import verify_csrf_token
 from xinyi_platform.models.business_client import BusinessClient, ClientStatus
 from xinyi_platform.services.oauth_service import OAuthService
@@ -45,8 +44,10 @@ async def _get_slo_urls(session: AsyncSession) -> list[str]:
 
 
 def _render_logout_page(return_to: str, slo_urls: list[str]) -> HTMLResponse:
-    jinja = Environment(loader=FileSystemLoader(str(Path(__file__).resolve().parent.parent / "templates")))
-    html = jinja.get_template("logout.html").render(
+    # Use the shared, autoescape-enabled environment (make_templates), NOT a
+    # bare jinja2.Environment (which defaults to autoescape=False — XSS vector).
+    env = make_templates().env
+    html = env.get_template("logout.html").render(
         logout_urls=slo_urls,
         return_to=return_to,
     )

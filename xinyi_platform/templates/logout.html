@@ -19,7 +19,7 @@ body { font-family: system-ui, sans-serif; display: flex; justify-content: cente
 <iframe src="{{ url }}" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
 {% endfor %}
 <script>
-setTimeout(function(){ window.location.href = "{{ return_to }}"; }, 2000);
+setTimeout(function(){ window.location.href = {{ return_to | tojson }}; }, 2000);
 </script>
 </body>
 </html>
