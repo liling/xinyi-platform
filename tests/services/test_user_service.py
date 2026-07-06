@@ -114,3 +114,87 @@ async def test_batch_get_returns_dict(mock_session):
     assert result[u2.id]["username"] == "b"
     assert result[u1.id]["role"] == "user"
     assert result[u2.id]["role"] == "admin"
+
+
+async def test_get_by_id_excludes_soft_deleted():
+    """Regression: get_by_id must not return soft-deleted users.
+    Internal API relies on this to return 404 for deleted users."""
+    captured = {}
+    user = User(id=uuid.uuid4(), username="alive", display_name="A",
+                auth_provider=AuthProvider.LOCAL)
+
+    async def _capture(stmt):
+        captured["stmt"] = stmt
+        result = MagicMock()
+        result.scalar_one_or_none.return_value = user
+        return result
+
+    session = MagicMock()
+    session.execute = _capture
+
+    out = await UserService.get_by_id(session, user.id)
+    assert out is user
+    compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
+    assert "deleted_at IS NULL" in compiled
+
+
+async def test_get_by_username_excludes_soft_deleted():
+    """Regression: get_by_username must not return soft-deleted users."""
+    captured = {}
+    user = User(username="alive", display_name="A", auth_provider=AuthProvider.LOCAL)
+
+    async def _capture(stmt):
+        captured["stmt"] = stmt
+        result = MagicMock()
+        result.scalar_one_or_none.return_value = user
+        return result
+
+    session = MagicMock()
+    session.execute = _capture
+
+    out = await UserService.get_by_username(session, "alive")
+    assert out is user
+    compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
+    assert "deleted_at IS NULL" in compiled
+
+
+async def test_batch_get_excludes_soft_deleted():
+    """Regression: batch_get must filter deleted_at so internal callers
+    don't receive deleted users in batch responses."""
+    captured = {}
+
+    async def _capture(stmt):
+        captured["stmt"] = stmt
+        result = MagicMock()
+        scalars_mock = MagicMock()
+        scalars_mock.all.return_value = []
+        result.scalars.return_value = scalars_mock
+        return result
+
+    session = MagicMock()
+    session.execute = _capture
+
+    await UserService.batch_get(session, [uuid.uuid4()])
+    compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
+    assert "deleted_at IS NULL" in compiled
+
+
+async def test_search_excludes_soft_deleted():
+    """Regression: search must filter deleted_at so deleted users don't
+    appear in typeahead/search results."""
+    captured = {}
+
+    async def _capture(stmt):
+        captured["stmt"] = stmt
+        result = MagicMock()
+        scalars_mock = MagicMock()
+        scalars_mock.all.return_value = []
+        result.scalars.return_value = scalars_mock
+        return result
+
+    session = MagicMock()
+    session.execute = _capture
+
+    await UserService.search(session, "alice")
+    compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
+    assert "deleted_at IS NULL" in compiled

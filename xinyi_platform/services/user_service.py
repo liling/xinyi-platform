@@ -56,12 +56,17 @@ class UserService:
 
     @staticmethod
     async def get_by_username(session: AsyncSession, username: str) -> User | None:
-        result = await session.execute(select(User).where(User.username == username))
+        result = await session.execute(
+            select(User).where(User.username == username, User.deleted_at.is_(None))
+        )
         return result.scalar_one_or_none()
 
     @staticmethod
     async def get_by_id(session: AsyncSession, user_id: uuid.UUID) -> User | None:
-        return await session.get(User, user_id)
+        result = await session.execute(
+            select(User).where(User.id == user_id, User.deleted_at.is_(None))
+        )
+        return result.scalar_one_or_none()
 
     @staticmethod
     async def batch_get(
@@ -73,7 +78,9 @@ class UserService:
             return {}
         if len(user_ids) > 100:
             raise ValueError("batch_get supports up to 100 ids")
-        result = await session.execute(select(User).where(User.id.in_(user_ids)))
+        result = await session.execute(
+            select(User).where(User.id.in_(user_ids), User.deleted_at.is_(None))
+        )
         users = result.scalars().all()
         out = {}
         for u in users:
@@ -109,9 +116,10 @@ class UserService:
         limit: int = 20,
     ) -> list[dict]:
         stmt = select(User).where(
+            User.deleted_at.is_(None),
             (User.username.ilike(f"%{query}%"))
             | (User.display_name.ilike(f"%{query}%"))
-            | (User.email.ilike(f"%{query}%"))
+            | (User.email.ilike(f"%{query}%")),
         ).limit(limit)
         result = await session.execute(stmt)
         users = result.scalars().all()
