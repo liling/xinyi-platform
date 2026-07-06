@@ -1,5 +1,6 @@
 {% extends "ui/auth_shell.html" %}
 {% block title %}登录{% endblock %}
+{% block auth_heading %}登录{% endblock %}
 {% block auth_body %}
 <form method="post" action="/xinyi/login/form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

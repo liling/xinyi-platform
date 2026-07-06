@@ -4,7 +4,7 @@
     <div class="auth-card">
         <div class="auth-brand">
             <img src="{{ service_prefix }}/_ui/static/logo.svg" alt="{{ brand }}" class="auth-logo">
-            <h1>{{ brand }}</h1>
+            <h1>{% block auth_heading %}{{ brand }}{% endblock %}</h1>
         </div>
         {% block auth_body %}{% endblock %}
     </div>
