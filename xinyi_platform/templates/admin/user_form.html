@@ -10,7 +10,11 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="form-group">
             <label>用户名</label>
-            <input name="username" value="{{ user.username if user else '' }}" required>
+            {% if user %}
+            <input name="username" value="{{ user.username }}" readonly>
+            {% else %}
+            <input name="username" value="" required>
+            {% endif %}
         </div>
         <div class="form-group">
             <label>显示名</label>
@@ -27,13 +31,26 @@
                 <option value="admin" {{ 'selected' if user and user.role.value == 'admin' else '' }}>admin</option>
             </select>
         </div>
-        {% if not user %}
+        {% if user %}
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_active" value="true" {{ 'checked' if not user or user.is_active else '' }}>
+                启用账户
+            </label>
+        </div>
+        {% else %}
         <div class="form-group">
             <label>密码</label>
             <input type="password" name="password" required>
         </div>
         {% endif %}
         <button type="submit" class="btn btn-primary">保存</button>
+        {% if user %}
+        <button type="submit" formaction="/xinyi/admin/users/{{ user.id }}/delete"
+                formmethod="post"
+                class="btn btn-danger"
+                onclick="return confirm('确定删除用户 {{ user.username }}?');">删除用户</button>
+        {% endif %}
     </form>
 </div>
 {% endblock %}

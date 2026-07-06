@@ -30,7 +30,7 @@ class UserService:
         validate_password_strength(password)
         existing = await session.execute(select(User).where(User.username == username))
         if existing.scalar_one_or_none() is not None:
-            raise UsernameConflictError(f"Username {username!r} already exists")
+            raise UsernameConflictError(f"用户名 {username!r} 已存在")
 
         user = User(
             username=username,

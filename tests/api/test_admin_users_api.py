@@ -96,10 +96,10 @@ def test_create_user_as_admin():
                     "display_name": "N", "email": "n@example.com",
                     "role": "user",
                 },
+                follow_redirects=False,
             )
-            assert response.status_code == 200
-            body = response.json()
-            assert body["username"] == "new"
+            assert response.status_code == 303, response.text
+            assert response.headers["location"] == "/xinyi/admin/users"
         finally:
             app.dependency_overrides.clear()
 
@@ -127,10 +127,10 @@ def test_create_user_via_form_submission():
                     "email": "n@example.com",
                     "role": "user",
                 },
+                follow_redirects=False,
             )
-            assert response.status_code == 200, response.text
-            body = response.json()
-            assert body["username"] == "newuser"
+            assert response.status_code == 303, response.text
+            assert response.headers["location"] == "/xinyi/admin/users"
             create_mock.assert_awaited_once()
             kwargs = create_mock.await_args.kwargs
             assert kwargs["username"] == "newuser"
@@ -197,5 +197,196 @@ def test_create_user_weak_password_returns_html_error_page():
         assert response.headers["content-type"].startswith("text/html"), response.headers
         assert "Password must contain at least one uppercase letter" in response.text
         assert "<form" in response.text
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_create_user_invalid_email_returns_400_with_chinese_error():
+    """Regression: email format must be validated; 'not_an_email' was accepted silently."""
+    app.dependency_overrides[get_session] = _override_session()
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        with patch(
+            "xinyi_platform.api.admin_users.UserService.create_user",
+            new_callable=AsyncMock,
+        ) as create_mock:
+            response = client.post(
+                "/xinyi/admin/users",
+                cookies={"xinyi_session": _admin_token()},
+                data={
+                    "username": "bademail",
+                    "password": "MyStrong123!",
+                    "display_name": "Bad Email",
+                    "email": "not_an_email",
+                    "role": "user",
+                },
+            )
+        assert response.status_code == 400, response.text
+        assert "邮箱格式不正确" in response.text
+        create_mock.assert_not_awaited()
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_update_user_persists_email_and_is_active():
+    """Regression: update_user ignored email field, and is_active checkbox default
+    was 'true' so unchecking had no effect."""
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    user = User(
+        id=uuid.uuid4(), username="victim", display_name="V",
+        email="old@example.com", auth_provider=AuthProvider.LOCAL,
+        role=UserRole.USER, is_active=True,
+    )
+    session_mock = MagicMock()
+    session_mock.get = AsyncMock(return_value=user)
+    session_mock.commit = AsyncMock()
+
+    async def _override():
+        yield session_mock
+
+    app.dependency_overrides[get_session] = _override
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        response = client.post(
+            f"/xinyi/admin/users/{user.id}",
+            cookies={"xinyi_session": _admin_token()},
+            data={
+                "display_name": "V2",
+                "email": "new@example.com",
+                "role": "admin",
+                # is_active checkbox unchecked: not sent
+            },
+            follow_redirects=False,
+        )
+        assert response.status_code == 303, response.text
+        assert user.email == "new@example.com"
+        assert user.role == UserRole.ADMIN
+        assert user.is_active is False
+        assert user.display_name == "V2"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_update_user_with_invalid_email_returns_400():
+    """Regression: email validation must apply on update too."""
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    user = User(
+        id=uuid.uuid4(), username="victim", display_name="V",
+        email="old@example.com", auth_provider=AuthProvider.LOCAL,
+        role=UserRole.USER, is_active=True,
+    )
+    session_mock = MagicMock()
+    session_mock.get = AsyncMock(return_value=user)
+    session_mock.commit = AsyncMock()
+
+    async def _override():
+        yield session_mock
+
+    app.dependency_overrides[get_session] = _override
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        response = client.post(
+            f"/xinyi/admin/users/{user.id}",
+            cookies={"xinyi_session": _admin_token()},
+            data={"display_name": "V", "email": "still_not_email", "role": "user"},
+        )
+        assert response.status_code == 400, response.text
+        assert "邮箱格式不正确" in response.text
+        assert "<form" in response.text
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_list_users_excludes_soft_deleted():
+    """Regression: list endpoint must filter is_active=False so soft-deleted
+    users don't appear in the admin list."""
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    alive = User(id=uuid.uuid4(), username="alive", display_name="Alive",
+                 auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=True)
+    deleted = User(id=uuid.uuid4(), username="deleted", display_name="Deleted",
+                   auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=False)
+    session_mock = MagicMock()
+    execute_result = MagicMock()
+    scalars_mock = MagicMock()
+    scalars_mock.all.return_value = [alive, deleted]
+    execute_result.scalars.return_value = scalars_mock
+    session_mock.execute = AsyncMock(return_value=execute_result)
+
+    captured = {}
+
+    async def _override():
+        yield session_mock
+
+    async def _capture_execute(stmt):
+        captured["stmt"] = stmt
+        return execute_result
+
+    session_mock.execute = _capture_execute
+
+    app.dependency_overrides[get_session] = _override
+    try:
+        client = TestClient(app)
+        response = client.get(
+            "/xinyi/admin/users",
+            cookies={"xinyi_session": _admin_token()},
+        )
+        assert response.status_code == 200, response.text
+        compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
+        assert "is_active" in compiled or "users.is_active" in compiled
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_create_user_redirects_to_list_after_success():
+    """Regression: create_user returned raw JSON; must redirect (PRG pattern)."""
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    fake = User(id=uuid.uuid4(), username="new", display_name="N",
+                auth_provider=AuthProvider.LOCAL, role=UserRole.USER)
+    with patch(
+        "xinyi_platform.api.admin_users.UserService.create_user",
+        new_callable=AsyncMock, return_value=fake,
+    ):
+        app.dependency_overrides[get_session] = _override_session()
+        app.dependency_overrides[verify_csrf_token] = _noop_csrf
+        try:
+            client = TestClient(app)
+            response = client.post(
+                "/xinyi/admin/users",
+                cookies={"xinyi_session": _admin_token()},
+                data={
+                    "username": "new", "password": "MyStrong123!",
+                    "display_name": "N", "role": "user",
+                },
+                follow_redirects=False,
+            )
+            assert response.status_code == 303
+            assert response.headers["location"] == "/xinyi/admin/users"
+        finally:
+            app.dependency_overrides.clear()
+
+
+def test_create_user_duplicate_username_shows_chinese_error():
+    """Regression: UsernameConflictError message was English while UI is Chinese."""
+    from xinyi_platform.services.user_service import UsernameConflictError
+    app.dependency_overrides[get_session] = _override_session()
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        with patch(
+            "xinyi_platform.api.admin_users.UserService.create_user",
+            new_callable=AsyncMock,
+            side_effect=UsernameConflictError("用户名 'dup' 已存在"),
+        ):
+            response = client.post(
+                "/xinyi/admin/users",
+                cookies={"xinyi_session": _admin_token()},
+                data={"username": "dup", "password": "MyStrong123!", "role": "user"},
+            )
+        assert response.status_code == 400
+        assert "用户名" in response.text
+        assert "已存在" in response.text
     finally:
         app.dependency_overrides.clear()
