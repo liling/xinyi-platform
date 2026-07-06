@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,25 +48,32 @@ async def new_user_form(
 @router.post("")
 async def create_user(
     request: Request,
-    body: dict = Body(...),
+    username: str = Form(...),
+    password: str = Form(...),
+    display_name: str = Form(""),
+    email: str = Form(""),
+    role: str = Form("user"),
+    current_user: dict = Depends(get_current_user),
     _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     try:
         user = await UserService.create_user(
             session,
-            username=body["username"],
-            password=body["password"],
-            email=body.get("email"),
-            display_name=body.get("display_name", body["username"]),
+            username=username,
+            password=password,
+            email=email or None,
+            display_name=display_name or username,
             provider=AuthProvider.LOCAL,
-            role=UserRole.ADMIN if body.get("role") == "admin" else UserRole.USER,
+            role=UserRole.ADMIN if role == "admin" else UserRole.USER,
         )
         await session.commit()
-    except UsernameConflictError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except (UsernameConflictError, ValueError) as e:
+        return templates.TemplateResponse(
+            request, "admin/user_form.html",
+            {**build_template_context(request), "current_user": current_user, "error": str(e), "user": None},
+            status_code=400,
+        )
     return {"id": str(user.id), "username": user.username}
 
 
@@ -88,20 +95,21 @@ async def edit_user_form(
 
 @router.post("/{user_id}")
 async def update_user(
+    request: Request,
     user_id: uuid.UUID,
-    body: dict = Body(...),
+    display_name: str = Form(""),
+    role: str = Form("user"),
+    is_active: str = Form("true"),
     _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
     user = await session.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=404)
-    if "role" in body:
-        user.role = UserRole.ADMIN if body["role"] == "admin" else UserRole.USER
-    if "is_active" in body:
-        user.is_active = bool(body["is_active"])
-    if "display_name" in body:
-        user.display_name = body["display_name"]
+    user.role = UserRole.ADMIN if role == "admin" else UserRole.USER
+    user.is_active = is_active.lower() in ("true", "1", "on")
+    if display_name:
+        user.display_name = display_name
     await session.commit()
     return {"ok": True}
 

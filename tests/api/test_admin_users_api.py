@@ -91,9 +91,10 @@ def test_create_user_as_admin():
             response = client.post(
                 "/xinyi/admin/users",
                 cookies={"xinyi_session": _admin_token()},
-                json={
+                data={
                     "username": "new", "password": "MyStrong123!",
                     "display_name": "N", "email": "n@example.com",
+                    "role": "user",
                 },
             )
             assert response.status_code == 200
@@ -101,3 +102,100 @@ def test_create_user_as_admin():
             assert body["username"] == "new"
         finally:
             app.dependency_overrides.clear()
+
+
+def test_create_user_via_form_submission():
+    """HTML form submits form-encoded body; endpoint must accept it (not JSON only)."""
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    fake = User(id=uuid.uuid4(), username="newuser", display_name="新用户",
+                auth_provider=AuthProvider.LOCAL, role=UserRole.USER)
+    with patch(
+        "xinyi_platform.api.admin_users.UserService.create_user",
+        new_callable=AsyncMock, return_value=fake,
+    ) as create_mock:
+        app.dependency_overrides[get_session] = _override_session()
+        app.dependency_overrides[verify_csrf_token] = _noop_csrf
+        try:
+            client = TestClient(app)
+            response = client.post(
+                "/xinyi/admin/users",
+                cookies={"xinyi_session": _admin_token()},
+                data={
+                    "username": "newuser",
+                    "password": "MyStrong123!",
+                    "display_name": "新用户",
+                    "email": "n@example.com",
+                    "role": "user",
+                },
+            )
+            assert response.status_code == 200, response.text
+            body = response.json()
+            assert body["username"] == "newuser"
+            create_mock.assert_awaited_once()
+            kwargs = create_mock.await_args.kwargs
+            assert kwargs["username"] == "newuser"
+            assert kwargs["password"] == "MyStrong123!"
+            assert kwargs["email"] == "n@example.com"
+            assert kwargs["display_name"] == "新用户"
+            assert kwargs["role"] == UserRole.USER
+        finally:
+            app.dependency_overrides.clear()
+
+
+def test_create_user_weak_password_returns_400_not_500():
+    """Weak password must surface as 400, not crash the app as 500."""
+    from xinyi_platform.auth.password import PasswordStrengthError
+    app.dependency_overrides[get_session] = _override_session()
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        with patch(
+            "xinyi_platform.api.admin_users.UserService.create_user",
+            new_callable=AsyncMock,
+            side_effect=PasswordStrengthError("Password must contain at least one uppercase letter"),
+        ):
+            response = client.post(
+                "/xinyi/admin/users",
+                cookies={"xinyi_session": _admin_token()},
+                data={
+                    "username": "weakpw",
+                    "password": "weakpassword",
+                    "display_name": "弱密码用户",
+                    "role": "user",
+                },
+            )
+        assert response.status_code == 400, response.text
+        assert "uppercase" in response.text
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_create_user_weak_password_returns_html_error_page():
+    """Form submission on failure must re-render the form HTML with error message,
+    not raw JSON (browsers can't display JSON error details gracefully)."""
+    from xinyi_platform.auth.password import PasswordStrengthError
+    app.dependency_overrides[get_session] = _override_session()
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        with patch(
+            "xinyi_platform.api.admin_users.UserService.create_user",
+            new_callable=AsyncMock,
+            side_effect=PasswordStrengthError("Password must contain at least one uppercase letter"),
+        ):
+            response = client.post(
+                "/xinyi/admin/users",
+                cookies={"xinyi_session": _admin_token()},
+                data={
+                    "username": "weakpw",
+                    "password": "weakpassword",
+                    "display_name": "弱密码用户",
+                    "role": "user",
+                },
+            )
+        assert response.status_code == 400, response.text
+        assert response.headers["content-type"].startswith("text/html"), response.headers
+        assert "Password must contain at least one uppercase letter" in response.text
+        assert "<form" in response.text
+    finally:
+        app.dependency_overrides.clear()

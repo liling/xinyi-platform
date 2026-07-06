@@ -1,7 +1,7 @@
 import bcrypt
 
 
-class PasswordStrengthError(Exception):
+class PasswordStrengthError(ValueError):
     pass
 
 

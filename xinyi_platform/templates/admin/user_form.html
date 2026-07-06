@@ -5,6 +5,7 @@
     <h2>{% if user %}编辑 {{ user.username }}{% else %}新建用户{% endif %}</h2>
 </div>
 <div class="card">
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
     <form method="post" action="{% if user %}/xinyi/admin/users/{{ user.id }}{% else %}/xinyi/admin/users{% endif %}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div class="form-group">
