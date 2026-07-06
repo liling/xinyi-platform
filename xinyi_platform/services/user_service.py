@@ -129,6 +129,7 @@ class UserService:
 
     @staticmethod
     async def soft_delete(session: AsyncSession, user_id: uuid.UUID) -> None:
+        from datetime import datetime, timezone
         user = await session.get(User, user_id)
         if user is not None:
-            user.is_active = False
+            user.deleted_at = datetime.now(timezone.utc)

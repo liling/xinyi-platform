@@ -39,7 +39,7 @@ async def list_users(
 ):
     stmt = (
         select(User)
-        .where(User.is_active.is_(True))
+        .where(User.deleted_at.is_(None))
         .order_by(User.created_at.desc())
         .limit(size)
         .offset((page - 1) * size)
@@ -146,9 +146,12 @@ async def update_user(
 @router.post("/{user_id}/delete")
 async def delete_user(
     user_id: uuid.UUID,
+    current_user: dict = Depends(get_current_user),
     _csrf=Depends(verify_csrf_token),
     session: AsyncSession = Depends(get_session),
 ):
+    if current_user.get("sub") == str(user_id):
+        raise HTTPException(status_code=400, detail="不能删除自己")
     await UserService.soft_delete(session, user_id)
     await session.commit()
     return RedirectResponse(url="/xinyi/admin/users", status_code=303)

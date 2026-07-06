@@ -300,46 +300,6 @@ def test_update_user_with_invalid_email_returns_400():
         app.dependency_overrides.clear()
 
 
-def test_list_users_excludes_soft_deleted():
-    """Regression: list endpoint must filter is_active=False so soft-deleted
-    users don't appear in the admin list."""
-    from xinyi_platform.models.user import AuthProvider, User, UserRole
-    alive = User(id=uuid.uuid4(), username="alive", display_name="Alive",
-                 auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=True)
-    deleted = User(id=uuid.uuid4(), username="deleted", display_name="Deleted",
-                   auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=False)
-    session_mock = MagicMock()
-    execute_result = MagicMock()
-    scalars_mock = MagicMock()
-    scalars_mock.all.return_value = [alive, deleted]
-    execute_result.scalars.return_value = scalars_mock
-    session_mock.execute = AsyncMock(return_value=execute_result)
-
-    captured = {}
-
-    async def _override():
-        yield session_mock
-
-    async def _capture_execute(stmt):
-        captured["stmt"] = stmt
-        return execute_result
-
-    session_mock.execute = _capture_execute
-
-    app.dependency_overrides[get_session] = _override
-    try:
-        client = TestClient(app)
-        response = client.get(
-            "/xinyi/admin/users",
-            cookies={"xinyi_session": _admin_token()},
-        )
-        assert response.status_code == 200, response.text
-        compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
-        assert "is_active" in compiled or "users.is_active" in compiled
-    finally:
-        app.dependency_overrides.clear()
-
-
 def test_create_user_redirects_to_list_after_success():
     """Regression: create_user returned raw JSON; must redirect (PRG pattern)."""
     from xinyi_platform.models.user import AuthProvider, User, UserRole
@@ -388,5 +348,81 @@ def test_create_user_duplicate_username_shows_chinese_error():
         assert response.status_code == 400
         assert "用户名" in response.text
         assert "已存在" in response.text
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_delete_user_sets_deleted_at_not_is_active():
+    """Regression: soft_delete previously set is_active=False, conflating
+    'disabled' with 'deleted'. Now it sets deleted_at and leaves is_active alone."""
+    import datetime as dt
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    user = User(
+        id=uuid.uuid4(), username="victim", display_name="V",
+        auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=True,
+    )
+    session_mock = MagicMock()
+    session_mock.get = AsyncMock(return_value=user)
+    session_mock.commit = AsyncMock()
+
+    async def _override():
+        yield session_mock
+
+    app.dependency_overrides[get_session] = _override
+    app.dependency_overrides[verify_csrf_token] = _noop_csrf
+    try:
+        client = TestClient(app)
+        response = client.post(
+            f"/xinyi/admin/users/{user.id}/delete",
+            cookies={"xinyi_session": _admin_token()},
+            follow_redirects=False,
+        )
+        assert response.status_code == 303, response.text
+        assert user.deleted_at is not None
+        assert user.is_active is True  # untouched
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_list_users_excludes_deleted_but_shows_disabled():
+    """Regression: list must show disabled (is_active=False) users so admin
+    can re-enable them, but hide deleted (deleted_at IS NOT NULL) users."""
+    from xinyi_platform.models.user import AuthProvider, User, UserRole
+    import datetime as dt
+    active = User(id=uuid.uuid4(), username="active", display_name="A",
+                  auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=True)
+    disabled = User(id=uuid.uuid4(), username="disabled", display_name="D",
+                   auth_provider=AuthProvider.LOCAL, role=UserRole.USER, is_active=False)
+    deleted = User(id=uuid.uuid4(), username="deleted", display_name="X",
+                   auth_provider=AuthProvider.LOCAL, role=UserRole.USER,
+                   deleted_at=dt.datetime.now(dt.timezone.utc))
+
+    captured = {}
+
+    async def _fake_execute(stmt):
+        captured["stmt"] = stmt
+        result = MagicMock()
+        scalars_mock = MagicMock()
+        # Return all three to verify the filter is in SQL, not Python
+        scalars_mock.all.return_value = [active, disabled, deleted]
+        result.scalars.return_value = scalars_mock
+        return result
+
+    session_mock = MagicMock()
+    session_mock.execute = _fake_execute
+
+    async def _override():
+        yield session_mock
+
+    app.dependency_overrides[get_session] = _override
+    try:
+        client = TestClient(app)
+        response = client.get(
+            "/xinyi/admin/users",
+            cookies={"xinyi_session": _admin_token()},
+        )
+        assert response.status_code == 200, response.text
+        compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
+        assert "deleted_at" in compiled
     finally:
         app.dependency_overrides.clear()
