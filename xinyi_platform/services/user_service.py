@@ -28,7 +28,9 @@ class UserService:
         role: UserRole = UserRole.USER,
     ) -> User:
         validate_password_strength(password)
-        existing = await session.execute(select(User).where(User.username == username))
+        existing = await session.execute(
+            select(User).where(User.username == username, User.deleted_at.is_(None))
+        )
         if existing.scalar_one_or_none() is not None:
             raise UsernameConflictError(f"用户名 {username!r} 已存在")
 

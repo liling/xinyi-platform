@@ -198,3 +198,31 @@ async def test_search_excludes_soft_deleted():
     await UserService.search(session, "alice")
     compiled = str(captured["stmt"].compile(compile_kwargs={"literal_binds": True}))
     assert "deleted_at IS NULL" in compiled
+
+
+async def test_create_user_allows_reusing_deleted_username():
+    """Regression: after soft-delete, username check must NOT find the deleted
+    user. Combined with DB partial unique index, this lets admins recreate
+    users with the same name."""
+    mock_session = MagicMock()
+    # Simulate DB: no active user with this username (deleted ones filtered out)
+    mock_session.execute = AsyncMock()
+    mock_session.execute.return_value = MagicMock()
+    mock_session.execute.return_value.scalar_one_or_none.return_value = None
+    mock_session.add = MagicMock()
+    mock_session.flush = AsyncMock()
+
+    user = await UserService.create_user(
+        mock_session,
+        username="recycled",
+        password="MyStrong123!",
+        email="r@b.com",
+        display_name="Recycled",
+        provider=AuthProvider.LOCAL,
+    )
+    assert user.username == "recycled"
+
+    # Verify the username lookup SQL filters deleted_at
+    stmt_passed = mock_session.execute.await_args.args[0]
+    compiled = str(stmt_passed.compile(compile_kwargs={"literal_binds": True}))
+    assert "deleted_at IS NULL" in compiled
