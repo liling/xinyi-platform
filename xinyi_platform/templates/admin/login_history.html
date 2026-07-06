@@ -7,13 +7,14 @@
 <div class="card">
     <table class="data-table">
         <thead>
-            <tr><th>时间</th><th>用户 ID</th><th>IP</th><th>UA</th><th>结果</th><th>失败原因</th></tr>
+            <tr><th>时间</th><th>用户名</th><th>姓名</th><th>IP</th><th>UA</th><th>结果</th><th>失败原因</th></tr>
         </thead>
         <tbody>
-        {% for r in records %}
+        {% for r, u in rows %}
             <tr>
                 <td>{{ r.login_time }}</td>
-                <td>{{ r.user_id }}</td>
+                <td>{{ u.username if u else '—' }}</td>
+                <td>{{ u.display_name if u else '—' }}</td>
                 <td>{{ r.ip_address or '—' }}</td>
                 <td>{{ (r.user_agent or '')[:50] }}</td>
                 <td><span class="badge badge-{{ 'success' if r.success else 'danger' }}">{{ '成功' if r.success else '失败' }}</span></td>
