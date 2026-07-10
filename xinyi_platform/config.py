@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     rate_limit_register_per_minute: int = 3
 
     session_secure: bool = False
+    auto_migrate: bool = True
 
     registration_token: str = ""
 

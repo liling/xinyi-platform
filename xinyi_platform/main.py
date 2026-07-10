@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -60,6 +61,18 @@ def _warn_if_session_insecure(settings: Settings) -> None:
         )
 
 
+async def run_migrations() -> None:
+    def _upgrade():
+        from alembic import command
+        from alembic.config import Config
+
+        cfg = Config("alembic.ini")
+        command.upgrade(cfg, "head")
+
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, _upgrade)
+
+
 async def _cleanup_expired_tokens(session_factory):
     now = datetime.now(timezone.utc)
     async with session_factory() as session:
@@ -97,6 +110,12 @@ async def _build_products(session_factory, settings) -> list:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app_state.settings = settings
+
+    if settings.auto_migrate:
+        logger.info("Running database migrations...")
+        await run_migrations()
+        logger.info("Database migrations complete.")
+
     app_state.engine = create_engine(settings)
     app_state.session_factory = create_session_factory(app_state.engine)
     set_session_factory(app_state.session_factory)
