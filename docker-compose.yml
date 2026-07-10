@@ -1,5 +1,6 @@
 services:
   xinyi-platform:
+    image: ghcr.io/liling/xinyi-platform:latest
     build: .
     ports:
       - "8000:8000"

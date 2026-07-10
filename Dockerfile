@@ -16,7 +16,10 @@ RUN uv sync --extra dev --no-cache || uv sync --no-cache
 
 COPY xinyi_platform ./xinyi_platform
 COPY alembic.ini ./
+RUN uv pip install -e .
+
+ENV PATH="/app/.venv/bin:${PATH}"
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "xinyi_platform.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "xinyi_platform.main:app", "--host", "0.0.0.0", "--port", "8000"]
